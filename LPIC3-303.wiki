@@ -89,6 +89,28 @@ crc-32 (don't use, insecure), md5, sha-1 (most common)
 If file is modified md5 sum changes
 
 == PKI and Trust Chains ==
+PKI = Public Key Infrastructure
+
+Use ID, Gov't and airline as an example
+ID to verify who you are to airline
+Gov't provisioned ID, valid institution
+
+PKI is made up of a hierarcy of Certificate Authorities (CA) and a Certificate Signing Request (CSR) process
+
+Root Trusted
+Top level CA
+Client
+
+CA
+Trusted third party that validates the authenticity of a public key
+Root trusted CA that signs and vets CA certificates
+By trusting a CA cert you ctrust all certs signed by that CA
+
+CSR are essentially public keys that are generated and submitted to a CA to be signed
+When a CA signs a CSR it produces a certificate that is trusted by the signing CA
+CA can also invalidate a cert if needed by using either OCSP (Online Certificate Status Protocol) or by using a CRL (Certificate Revocation List)
+CRL almost completely deprecited in favor of OCSP
+
 == Request, Sign, and Manage Certificates ==
 == Operating a Certificate Authority ==
 == X.509 Certificates and Public Key Infrastructures ==
