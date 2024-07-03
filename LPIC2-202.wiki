@@ -1,0 +1,83 @@
+[[index|back]]
+
+= LPIC 202 =
+
+== Chapter 2: Domain Name Server ==
+=== Basic DNS Server Configuration (DNS Client Configuration and Terms) ===
+
+=== Basic DNS Server Configuration (BIND Installation - Caching Name Server) ===
+=== Basic DNS Server Configuration (BIND Service Start and rndc Command) ===
+=== Basic DNS Server Configuration (named-checkconf) ===
+=== Create and Maintain DNS Zones (Configuring for Zones) ===
+=== Create and Maintain DNS Zones (Zone Files and Record Types) ===
+=== Create and Maintain DNS Zones (Finalize /etc/named.conf for Master DNS Server) ===
+=== Create and Maintain DNS Zones (Create Forward and Reverse Zone Files and Testing the Configuration) ===
+=== Basic DNS Server Configuration (named-checkzone, named-compilezone, and the masterfile-format setting) ===
+=== Securing a DNS Server (Split DNS Configuration for Security) ===
+=== Securing a DNS Server (Running BIND in a Chroot Jail) ===
+=== Securing a DNS Server (DNS Security Tools - Discussion, Keys and Signing a Zone File) ===
+=== Securing a DNS Server (DANE, TLSA records) ===
+=== Create a Caching-Only DNS Server ===
+
+== Chapter 3: Web Services ==
+=== Implementing a Web Server (Apache - Configuration File and Basic Directives) ===
+=== Implementing a Web Server (Enabling Modules - Perl) ===
+=== Implementing a Web Server (Enabling Modules - PHP) ===
+=== Implementing a Web Server (Using Authentication for Security - htpasswd and mod_auth) ===
+=== Implementing a Web Server (Using Authentication for Security - htaccess file) ===
+=== Implementing a Web Server (Name-Based Virtual Hosts) ===
+=== Implementing a Web Server (IP-Based Virtual Hosts) ===
+=== Implementing a Web Server (mod_access_compat) ===
+=== Apache Configuration for HTTPS (Generating SSL Signing Requests and Self-Signed Certificates) ===
+=== Apache Configuration for HTTPS (Configuring Apache for SSL Certificates) ===
+=== Apache Configuration for HTTPS (SSL and SNI) ===
+=== Implementing a Proxy Server (Squid - Forward Proxy Configuration) ===
+=== Implementing a Proxy Server (Squid - Testing the Service) ===
+=== Implementing Nginx as a Web Server and a Reverse Proxy (Nginx - Installation and Configuration as Web Server) ===
+=== Implementing Nginx as a Web Server and a Reverse Proxy (Nginx - Basic Reverse Proxy Configuration) ===
+=== Implement an Apache Web Server with Perl CGI ===
+=== Implement an Apache Web Server with PHP Enabled ===
+=== Deploy and Test a Squid Forward Proxy Server ===
+
+== Chapter 4: File Sharing ==
+=== SAMBA Server Configuration (Server Installation and Share Configuration) ===
+=== SAMBA Server Configuration (Security and Account Management) ===
+=== SAMBA Server Configuration (Client Configuration and Testing) ===
+=== NFS Server Configuration (NFSv3 Server Installation, Configuration and Testing) ===
+=== NFS Server Configuration (NFSv3 Client Configuration and Share Mounting) ===
+=== NFS Server Configuration (Differences between NFSv3 and NFSv4) ===
+=== Deploy an NFS Server ===
+=== Deploy a Samba Server ===
+
+== Chapter 5: Network Client Management ==
+=== DHCP Configuration (Overview and Configuration) ===
+=== PAM Authentication (Overview) ===
+=== PAM Authentication (Modules - pam_unix, pam_cracklib, pam_limits and pam_listfile) ===
+=== PAM Authentication (Authentication Order - /etc/nsswitch.conf) ===
+=== PAM Authentication (SSSD) ===
+=== Configuring an OpenLDAP Server (Overview) ===
+=== Configuring an OpenLDAP Server (Installation and Initial Configuration) ===
+=== Configuring an OpenLDAP Server (LDIF Creation for Adding Objects) ===
+=== LDAP Client Usage (Client Utilities for Searching, Adding, and Deleting Records) ===
+
+== Chapter 6: Email Services ==
+=== Using Email Servers (Overview) ===
+=== Using Email Servers (Postfix Key Configuration Items and Input Files) ===
+=== Managing Local Email Delivery (Rules-Based Message Management) ===
+=== Managing Remote Email Delivery (Dovecot - POP3 and IMAP with TLS Configuration) ===
+=== Managing Email Delivery (Sieve and Dovecot) ===
+=== Creating a Local Email Delivery Server ===
+=== Using Sieve to Filter E-Mail ===
+
+== Chapter 7: System Security ==
+=== Configuring a Router (Configuring Linux for Routing and Using IPTables) ===
+=== Securing FTP Servers (Server - vsftpd) ===
+=== Securing FTP Servers (Server - pure-ftpd, proftpd, and Active/Passive Connections) ===
+=== Secure Shell (SSH Configuration Options) ===
+=== Secure Shell (SSH Client Tools) ===
+=== Secure Shell (Advanced SSH - Using SSH Keys for Authentication) ===
+=== Security Tasks (Review of Tools, Monitoring, and Organizations) ===
+=== OpenVPN Server Configuration ===
+=== OpenVPN Client Configuration ===
+=== Deploy and Test VSFTPD Server ===
+=== Secure Shell and SSH Key Exchange ===

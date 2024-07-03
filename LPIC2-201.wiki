@@ -1,0 +1,2576 @@
+[[index|back]]
+
+= LPIC 201 =
+
+== Chapter 3: Linux Capacity Planning ==
+=== Measuring System Resource Usage ===
+Understanding the iostat command
+Reports on CPU stats and io stats for devices and partitions.
+Provided by the sysstat package
+By defaults generates a CPU and Device report
+
+Understanding the sar command
+Collect, report or save system activity information. Provided by the sysstt command.
+Creates a binary file for each dat of the month with collected info.
+Files are overwritten next month
+
+sysstat service must be started for sar to collect data and duration can be changed by modifying /etc/cron.d/sysstat
+
+Understanding the free command
+Displays free and unused RAM
+KB default
+
+/proc/sys/vm/swappiness adjusts how aggressively a system will swap.
+
+Understanding the vmstat command
+Report virtual memory stats, paging and block io
+Summary of usage since reboot
+Like free but more in depth
+
+=== Viewing Open Files and Running Processes: Pt. 1 ===
+lsof
+Lists open files on the system
+Be default displays all open files belonging to all active processes
+Multiple options displays on criteria (ORing) but the -a option can be used to AND the options.
+
+ps
+Report a snapshot of the current processes
+By default selects all processes associated with current user
+-e shows all processes
+-f full format list
+Usually used together
+
+Several different options
+UNIX groups preceded by dash
+BSD no dash
+GNU long two dashes
+
+pstree
+Displays running processes as a visual tree
+
+top
+Displays real time view of processes running on the system
+
+=== Viewing Open Files and Running Processes: Pt. 2 ===
+Just demos commands above
+
+=== Measuring Network Usage and System Availability ===
+netstat,
+Print information on network connections, routing tables, interface statistics, connects and sockets
+
+Obsolete and replaced by ss, and ip
+
+w
+Display info about users currently on machine and processes
+Header shows uptime, active users and load average
+
+uptime
+Displays how long system has been running
+Default same info as w
+Both w and uptime get info from /var/run/utmp
+
+=== Using Tools to Monitor and Measure IT Infrastructure Usage ===
+Nagios
+Industry standard IT monitoring solution
+Complete monitoring for Linux and distros
+Provides two options for monitoring hosts
+Using dedicated Nagios agents
+Using SNMP for "agentless" monitoring
+
+SNMP,
+Simple Network Management Protocol (SNMP) is an application–layer protocol defined by the Internet Architecture Board (IAB)
+in RFC1157 for exchanging management information between network devices.
+It is a part of Transmission Control Protocol/Internet Protocol (TCP/IP) protocol suite.
+
+Provides advanced graphs and visual aids
+Provides automated and integrated capacity planning
+
+Icinga2
+Monitoring solution taht reports on usage statistics by using a primary node, stellites and agents
+Monitors network resources
+Notifies users of outages
+Generates performance data
+Runs opn Linux/Unix and Windows
+Fork of Nagios
+
+MRTG
+Multi Router Traffic Grapher
+Tool for monitoring routers and other network devices
+Monitors SNMP network devices
+Monitors traffic load on network links
+Generates HTML pages containing PNG images of live data
+Implements a data consolidation algorithm
+Provides built-in hooks for using RRDTool
+Round Robin Database Tool
+
+Cacti
+Graphing solution
+Designed for RRDTool
+Front end interface
+Stores data in MySQL
+Built in user based management system
+Provides graphs for displaying data
+Allows data sources to be defined for data collection
+
+Collectd
+Service daemon that collects system and application performance metrics periodically and provides mechanisms to store
+the values in a variety of ways (e.g., RRD files)
+
+Gathers metrics from various sources
+Stores metrics gathered or makes them available over the network
+Provides information for performance analysis and capacity planning
+Provides over 100 plugins for monitoring and integration with other solutions
+One way is via RRD files
+
+=== Capacity Planning and Prediction ===
+Install collectd and dependencies
+
+Configure collectd
+/etc/collectd/collectd.conf
+
+Uncomment hostname directive and update with current hostname
+Restart collectd
+Copy files in
+/usr/share/doc/collectd/examples/collection3/
+
+To web accessible destination
+/var/www/html
+
+Configure apache2 virtual host for site
+Enable the module cgi.load via
+ln -s /etc/apache2/mods-available/cgi.load /etc/apache/mods-enabled
+
+Restart apache2
+
+Access via hostname/collection3/bin/index.cgi
+
+=== Conclusion ===
+Command line utilities for monitoring resource usage
+iostat
+sar
+free
+vmstat
+
+View open files and running processes
+lsof
+ps
+pstree
+top
+
+Network connection monitoring
+netstat
+w
+uptime
+
+Resource monitoring
+Nagios
+Icinga2
+MRTG
+Cacti
+Collectd
+
+Capacity planning relies on accurate long-term historical data
+Implement a monitoring solution
+Analyze historical data
+Consider business initiatives and needs
+Prepare additional resources
+
+=== LAB: Troubleshooting CPU utilization ===
+Install Monitoring Utilities
+yum install -y sysstat
+
+Diagnose the source of the issue
+top, vmstat, iostat, free, df, ps, pstree, etc.
+
+Kill offending pid
+
+Objectives:
+Install the sysstat package using the following commands:
+sudo -i
+yum install -y sysstat
+
+This is a list of possible steps to take to find the source of the issue. Not all of them are required.
+
+free -h
+df -h
+vmstat 1 4
+iostat -y 1 3
+iostat -cy 1 3
+top <-- locate PID(s) that are taking up a large amount of CPU (gzip and cat)
+
+Use the PIDs to discover the parent process ID (PPID) that spawned them and copy the offending script to /home/cloud_user/.
+
+ps -ef | egrep "PID|PID" <-- You can grep for each individual PID (egrep saves a step)
+pstree -p (PID of kaladin.sh) <-- shows process tree in a visual format
+cp /root/kaladin.sh /home/cloud_user/
+
+Once the PID of the offending process has been located (kaladin.sh), use the kill command to terminate it.
+
+kill -15 PID
+
+=== LAB: Troubleshooting Disk utilization ===
+Install the Monitoring and Reporting Utilities (`sysstat`)
+Install the sysstat package using the following commands:
+sudo -i
+yum install -y sysstat
+
+Use the Monitoring and Reporting Utilities to Diagnose the Issue
+This is a list of possible steps to take in order to find the source of the issue.
+All of these can be used, but they are not all required.
+Once located, the offending process should be copied to /home/cloud_user/.
+top
+vmstat 1 4
+iostat -y 1 3
+iostat -dy -p xvdg 1 3
+lsblk
+lsof | grep “mount point or device major,minor number”
+ps -ef | grep (PID of dalinar.sh)
+pstree -p (PID of dalinar.sh)
+cp /mnt/roshar/dalinar.sh /home/cloud_user/
+
+Terminate the Offending Process
+Once the PID of the offending process has been located (dalinar.sh), use the kill command to terminate it.
+kill -15 (PID of dalinar.sh)
+
+=== LAB: Create Capacity Usage Reports ===
+Install the monitoring and reporting utilities (sysstat).
+Use the yum command to install the sysstat package:
+yum install -y sysstat
+
+Start and enable the sysstat service so that sar will begin collecting system information.
+Start and enable the sysstat service using systemctl:
+systemctl start sysstat
+systemctl enable sysstat
+
+Update the cron file for sysstat so that the system activity accounting tool will run every thirty minutes.
+Open the sysstat cron file and change the duration for the system activity accounting tool from 10 minutes to 30 minutes:
+vim /etc/cron.d/sysstat
+Update the following line:
+*/10 * * * * root /usr/lib64/sa/sa1 1 1
+To look like this:
+*/30 * * * * root /usr/lib64/sa/sa1 1 1
+Save the file by running :wq
+
+Capture the results of the vmstat command in a file - /root/vmstat_report.
+The report should have a delay of one second with a count of ten and also include timestamps.
+
+Use the vmstat command to generate a report and redirect the output to /root/vmstat_report:
+vmstat -t 1 10 > /root/vmstat_report
+
+Capture the results of the iostat command in a file - /root/iostat_report.
+Only include statistics from the nvme0n1 device (cpu and average removed). It should have a one second delay and count of five.
+
+Use the iostat command to generate a report and redirect the output to /root/iostat_report:
+iostat -dy -p nvme0n1 1 5 > /root/iostat_report
+
+== Chapter 4: The Linux Kernel ==
+=== Understanding the Kernel Source Tree and Compressed Kernel Images ===
+Viewing the Kernel Source Tree and Documentation
+Kernel Source Tree
+Default location is /usr/src
+CentOS /usr/src/kernels
+
+Kernel documentation is in the Documentation directory
+00-INDEX gives list of various files and directories as well as a short description
+
+zImage and bZimage
+Two main types of kernel images
+Once compiled the compressed image is copied to the boot directory and rename to vmlinuz followed by the kernel version and architecture
+
+Understanding Compressed Kernel Image
+zImage was used on older systemct and designed to fit in limited memory.
+First 640 KB, low memory
+Image compressed to 512 using gzip
+
+bzImage stands for big zImage and takes advantage of the higher memory available.
+Around 1 MB, high memory
+Change happened around version 2 of the Linux kernel
+By 2.6 bzip2 was the standard compression used.
+
+Understanding xz compression
+xz Compression
+As of 2013 kernel.org started providing kernel archives in xz compression
+xz uses the LZMA2 compression algorithm and has become a standard because of it's efficiency and lower compression ratio
+
+=== Installing a Linux Kernel and Building Kernel Modules ===
+Compile the Linux kernel
+inside the kernel source tree, use make menuconfig to modify the kernel configuration and make bzImage to compile the kernel
+
+Build and install Modules
+inside the kernel source tree, use make modules to build the kernel modules and make modules_install to install them
+
+Install the kernel and generate the initramfs image
+Overwrite the current kernel in the boot directory with the newly generated bzImage.
+Then generate the initramfs (Ubuntu) mkinitrd (CentOS)
+
+=== Understanding Make Targets and Associated Utilities ===
+Make
+Execute commands within makefile.
+If the makefile isn't provided then the make command will look for makefiles starting with gnumakefile, makefile and Makefile
+
+Tagets to know for exam,
+Target: Purpose
+all: builds all targets marked with an asterisk
+config: update current config utlizing a line-oriented program
+xconfig: Update current config utilizing a ncurses menu-based program
+menuconfig: Update current config utilizing a menu-based program
+gconfig: Update current config utilizing a GTK+ based frontend
+oldconfig: Update current config using a provided .config as base
+mrproper: Remove all generated files + config + various backup files
+zImage: compressed kernel image
+bzImage: compressed kernel image
+modules: build all modules
+modules_install: install all modules to INSTALL_MOD_PATH (default: /)
+rpm-pkg: Build both source and binary RPM kernel packages
+binrpm-pkg: Build only the binary kernel RPM package
+deb-pkg: Build both source and binary deb kernel packages
+
+depmod
+Short for dependency modules and is used to generate a dependency list file, modules.dep and the associated map files
+depmod analyzes the /lib/modules/kernel_version directory and creates the dependency file modules.dep as well as a binary hash modules.dep.bin
+Another important file created by depmod is modules.symbols (and modules.symbols.bin).
+This file contains a dependency list of symbols - unique services provided by modules
+Can be used by other modules
+
+dkms Utility
+Dynamic Kernel Module Support (DKMS)
+Provides a framework for generating kernel modules whose sources generally reside outside of the kernel source tree
+Prepare a module for DKMS:
+Download and extract the kernel module
+Create or modify the dkms.conf file
+Copy the kernel module source code to /usr/src
+
+Add, build and install with DKMS
+
+=== Working with Kernel Modules ===
+uname
+Command line utility that prints basic information about the system
+The most comman use is to the determine the process architecture, hostname and kernel version
+Without any options uname prints the kernel name as if the -s option were used
+
+dmesg
+Print or control the kernel ring buffer
+By default, shows all the messages in the kernel ring buffer
+
+lsmod
+Program that nicely formats the contents of the /proc/modules file
+Shows what kernel modules are currently loaded
+
+modinfo
+Shows information about a kernel module.
+By default modinfo lists each attribute of the module in a fieldname: value format
+If the module name is not a filename, then /lib/modules/kernel_version is searched
+
+insmod
+Program to insert a kernel module in the linux kernel
+Recommended to use modprobe as it's more sophisticated
+
+rmmod
+Program to remove a module from the linux kernel
+Recommended to use modprobe -r instead
+
+modprobe
+Program used to add and remove modules from the Linux kernel
+Intelligently adds and removes modules by considering module dependencies
+Configurations added to /etc/modprobe.d or /etc/modprobe.conf are considered when the command is executed
+
+Module Configuration Files
+/lib/modules/kernel-version/modules.dep
+Lists the dependencies for every module in the directories under /lib/modules/kernel_version.
+This file is used by modprobe to know the order in which to load modules
+
+/etc/modules
+/etc/modules-load.d/modules.conf
+/etc/modules.conf
+Used to configure kernel modules to load at boot.
+Configuration FGiles should contain a list of kernel module names to load separated by newlines
+Empty lines or lines beginning with '#' are ignored
+
+/etc/modprobe.d
+/etc/modprobe.conf
+Teh configuration directory/file for modprobe
+Form of configuration is one command per line with a \ at the end
+Blank lines and lines beginning with '#' are ignored
+
+Commands:
+alias: give alternate names for modules
+options: add options to the module when it is inserted into the kernel
+install: run a shell command instead of inserting a module as normal
+remove: run a shell command when modprobe -r is invoked rather than removing a module
+blacklist: ignore a particular module's internal aliases
+
+=== Understanding the /proc Filesystem and the Device Filesystem ===
+Proc Filesystem
+A virtual filesystem that gets created and mounted during boot time
+Presents information about process and other system-related info.
+Processes, for which the filesystem is named, are represented by numbered directories that corelate with their PID.
+System and kernel level parameters can be changed by manually editing files within the /proc directory or by using the sysctl utility.
+Changes are only effective until a reboot.
+
+sysctl
+Used to configure kernel parameters at runtime and to display the current values.
+Available parameters can be found in /proc/sys
+Sysctl settigns added to /etc/sysctl.conf or /etc/sysctl.d/ will be applied on boot.
+Configuration files added to /etc/sysctl.d should end with .conf and be prefixed with a number for priority
+
+Device filesystem
+Contains files for every device of which the system is aware and special devices files that are used by the system
+Some examples of this are urandom, zero and null
+
+The kernel device manager, udev continually probes the system to check for connected devices and creates a device file when one is detected
+Udev rules end in .rules extension and determine how to identify devices and assign names to them
+Rules are located in /etc/udev/rules.d and /lib/udev/rules.d
+
+udevadm monitor
+Listens to the kernel uevents and events sent out by a udev rule and printes th devpath of the even to the console.
+This command replaces udevmonitor
+
+=== Analyzing Information about Available Hardware ===
+lspci
+Utility for displaying formation about Peripheral Component Interconnect (PCI) buses in the system and devices connected
+By default lspci shows a brief list of devices
+At more verbose levels the output is only useful to those failar with PCI
+
+lsusb
+A utility for display information about USB buses in the system and the devices connected to them
+
+lsdev
+Displays information about installed hardware
+lsdev gathers this information from the interrupts, ioports and dma files in the /proc directory
+There are no command line options for this command
+
+=== Conclusion to the Linux Kernel ===
+Viewed the kernel source tree in /usr/src and highlighted some important files and directories
+Discussed the compressed kernele images (zImage and bzImage)
+Covered xz compression
+
+Went through the process of compiling and installing a Linux kernel from start to finish.
+Steps to rememeber
+make menuconfig
+make bzImage
+make modules
+make modules_install
+mkinitrd
+mkinitramfs
+
+Covered make targets which are used to perform different actions with the make command
+Some important targets to remember are
+all
+config
+menuconfig
+mrproper
+bzImage
+modules
+module install
+
+The depmod utility is used the generate the modules dependency file
+DKMS utility provides a framework for generating kernel modules who's source is outside the baseline kernel.
+
+Used utilities to gain information about the kernel and kernel modules
+To insert/remove kernel modules and to update kernel parameters
+Important utilities: uname, dmesg, lsmod, modino, insmod, rmmod and modprobe
+Important files/directories
+modules.dep
+/etc/modules
+/etc/modules.conf
+/etc/mondprobe.d
+/etc/modprobe.conf
+
+Discussed the proc and device filesystems and how we can use sysctl to update kernel parameters and udevadm to monitor kernel uevents.
+
+Covered utilities for gaining information about available hardware
+lspci
+lsusb
+lsdev
+
+=== Compiling a Linux Kernel (Ubuntu) ===
+Enable source URIs for apt repositories.
+Open the sources.lst file in /etc/apt/:
+vim /etc/apt/sources.lst
+
+Uncomment deb-src URIs manually or by substitution — :%s/# deb-src/deb-src/g
+
+Resynchronize the package index files:
+apt-get update
+
+Install additional dependencies:
+apt-get install -y make gcc libncurses5-dev dpkg-dev build-essential bison flex libssl-dev libelf-dev
+
+Switch to the /usr/src directory:
+cd /usr/src/
+
+Download the kernel source tree:
+apt-get install -y linux-source kernel-package
+
+Select the following option:
+keep the local versions currently installed
+
+Update the kernel configuration
+Switch to the kernel source tree directory and extract the archive:
+cd /usr/src/linux-source-[kernel_version]
+tar jxvf linux-source-[kernel_version].tar.bz2
+mv linux-source-[kernel_version]/* .
+rm -rf ./linux-source-[kernel_version]/
+
+Get the necessary packages
+apt-get build-dep -y linux-source
+mkdir debian/stamps
+
+Update the kernel configuration with the make menuconfig command:
+cp /boot/config-$(uname -r) .config
+yes '' | make oldconfig
+
+make menuconfig
+Navigate with your arrow keys and use enter to go to Device Drivers > Block devices
+Using the “n” key, exclude the following two drivers - DRBD Distributed Replicated Block Device support and Packet writing on CD/DVD media (DEPRECATED)
+Exit the menu and save your configuration changes.
+Prepare to compile the Kernel:
+make clean
+
+Create the compressed kernel image by calling the bzImage target:
+make bzImage
+
+=== Installing a New Linux Kernel (Ubuntu) ===
+Back up the Existing Kernel and initramfs Images (the Backups Should End in ".bkp")
+
+Validate the current kernel version by running uname -r.
+Back up the existing kernel and initramfs images with the mv command:
+mv initrd.img-[version]-aws initrd.img-[version]-aws.bkp
+mv vmlinuz-[version]-aws vmlinuz-[version]-aws.bkp
+
+Install the New Kernel Image Located in the /home/cloud_user Directory
+
+Move bzImage from the /home/cloud_user directory to the boot directory (and ensure that it is named the same as your existing kernel image was):
+mv /home/cloud_user/bzImage /boot/vmlinuz-[version]-aws
+Update the permissions to match the other kernel images:
+chmod 600 vmlinuz-[version]-aws
+
+Generate a New initramfs Image
+
+Generate the new initramfs image using the mkinitramfs command (and ensure that it is named the same as the existing initramfs image):
+mkinitramfs -o /boot/initrd.img-[kernel_version]-aws [kernel_version]
+
+=== Working with Kernel Modules ===
+Generate a New initramfs Image
+
+Generate the new initramfs image using the mkinitramfs command (and ensure that it is named the same as the existing initramfs image): mkinitramfs -o /boot/initrd.img-[kernel_version]-aws [kernel_version]
+
+Remove the target_core_mod Module and All Its Dependencies
+
+To remove the target_core_module, the iscsi_target_mod dependency must be removed (the -v option can be used to display additional information):
+
+modprobe -r iscsi_target_mod
+
+Validate the modules have been removed:
+
+lsmod | grep target
+
+Install the nfsd Module
+
+Install the nfsd module using the modprobe command (the -v option can be used to display additional information):
+
+modprobe -v nfsd
+
+Validate that the module was loaded:
+
+lsmod | grep nfsd
+
+Display the Dependencies for the nfsd Module and Save the Names to /root/dependencies.txt
+
+Display information for the nfsd module:
+
+modinfo nsfd
+
+Save the names of the dependencies to /root/dependencies.txt:
+
+modinfo nfsd | grep depends > /root/dependencies.txt
+
+Get a Final Count of the Modules and Save It to /root/updated_count.txt
+
+Add the output from lsmod | wc -l to the /root/updated_count.txt file:
+
+lsmod | wc -l > /root/updated_count.txt
+
+=== Modifying Kernel Parameters ===
+Modify the Swappiness Parameter to Equal 10 for the Current Session
+
+Use sysctl to change the swappiness value to 10:
+
+sysctl -w vm.swappiness=10
+
+Ensure That the Changes Made to the Swappiness Parameter Will Persist through a Reboot
+
+Create a file in /etc/sysctl.d/ called 60-swap.conf with the following contents:
+
+vm.swappiness = 10
+
+This can be done with a text editor or through the command line:
+
+echo "vm.swappiness = 10" > /etc/sysctl.d/60-swap.conf
+
+Disable icmp_echo_ignore_all and Enable icmp_echo_ignore_broadcast for the Current Session
+
+Disable icmp_echo_ignore_all using the sysctl command:
+
+sysctl -w net.ipv4.icmp_echo_ignore_all=0
+
+Enable icmp_echo_ignore_broadcast using the sysctl command:
+
+sysctl -w net.ipv4.icmp_echo_ignore_broadcasts=1
+
+Ensure That the Changes Made to icmp_echo_ignore_all and icmp_echo_ignore_broadcast Persist through a Reboot
+
+Create a file in /etc/sysctl.d/ called 60-icmp.conf with the following system variables:
+
+icmp_echo_ignore_all = 0
+icmp_echo_ignore_broadcasts = 1
+This can be done with a text editor or from the command line using the echo command:
+
+echo -e 'icmp_echo_ignore_all = 0\nicmp_echo_ignore_broadcasts = 1' > /etc/sysctl.d/60-icmp.conf
+
+Enable ip_forward for the Current Session
+
+Enable ip_forward using the sysctl command:
+
+sysctl -w net.ipv4.ip_forward=1
+
+Ensure That the Changes Made to ip_forward will Persist through a Reboot
+
+Create a file in /etc/sysctl.d/ called 60-ip.conf with the following text:
+
+net.ipv4.ip_forward = 1
+This can be done with a text editor or from the command line:
+
+echo "net.ipv4.ip_forward = 1" > /etc/sysctl.d/60-ip.conf
+
+== Chapter 5: Linux System Startup ==
+=== Understanding the SysV-init Boot Process (Part 1) ===
+The Linux Standard Base (LSB)
+Spiel about mission to develop open standards.
+
+Joint project between Linux Foundation and several Linux distros
+Based on Portable Operating System Interface (POSIX) specification
+Areas of standardization include
+Filesystem Hierarchy Standard (FHS)
+libraries
+commands and utilities
+runlevels
+boot facilities
+printing system
+
+The init process
+First process that is called and used to start all other processes
+
+/etc/inittab
+Defines three important items for the init process:
+System's default runlevel
+What processes to start, monitor and restart if they terminate
+What actions to take when the system enters a new runlevel
+
+Run levels
+Initialization state that determines which system services should be running:
+0 halt Shuts down system
+1 singer-user mode Does not configure network interfaces, start daemones or allow non-root logins
+2 Multi-user mode (without networking) Does not configure network interfaces or export network services
+3 Multi-user mode (with networking) Start the system normally
+4 Undefined Not used, user definable
+5 Multi-user (w/ GUI) Start the system normally with the display manager (GDM etc)
+6 Reboot Reboot the system
+
+/etc/rc.d/ or /etc/rcN.d/
+Once the default runlevel is discovered, scripts in the corresponding rc.d directory (or rcN.d) are exeucuted
+SCripts are formatted as the KNN or SNN where the K determines what is stopped and S what is started.
+Number NN determines the order in whih they are stopped or started.
+
+/etc/init.d/
+Contains initialization scripts for all the services on the host which are called by the kill and start scripts in /etc/rc.d/ or /etc/rcN.d/
+
+chkconfig
+Updates and queries runlevel information for system services
+
+update-rc.d
+Updates the SysV-init Script links in /etc/runlevel.d (Debian
+
+init
+Change the current run level
+
+runlevel
+Displays the current and previous runlevel
+
+=== Understanding the Systemd Boot Process (Part 1) ===
+Systemd vs SysVinit
+One of the biggest differences between systemd and sysvinit is the way they start services
+Sysv starts services in a defined order, systemd starts in parallel
+Allows systemd to start service simultaneously
+
+Unit files
+Plain text ini file that encodes information about a service, socket, device, mount point, automount point
+swap file, partition, start up target watched file system, timer, resource management slice or group of externally created processes
+
+Unit files are located in three directories and operate based on precedence (greatest to least)
+/etc/systemd
+Unit files created with systemctl enable and unit files added for extending a service
+
+/run/system/
+Unit files created at run time
+
+/usr/lib/systemd
+Unit files distributed with installed RPM packages
+
+Unit files contain three main configuration sections
+Unit
+Contains generic options that are independent of the unit type
+Description, units behaviour and dependencies to other units
+
+Unit_type
+Heading reflects unit type, and the directives are particular to that kind of unit (type-specific)
+
+Install
+Contains directives used by the systemctl enabled and disable commands
+
+Systemd services
+unit configuration files whose name ends in ".service"
+Encodes information about a process controlled and supervised by the system
+
+systemctl list-unit-files
+List installed unit files and their enablement state
+
+systemctl daemon-reload
+Reload systemd manager configuration
+This will rerun all generators, reload all unit files and recreate the entire dependency state
+
+systemd-delta
+Find overridden configuration files
+Command allowed for optional prefix and suffic which must be one of the directories containing configuration files:
+/etc
+/run
+/usr/lib
+
+Otherwise it shows all overriding files
+
+Systemd targets
+Targets or target units are used to link a group of units together to describe a desired system state
+This can contain services or evern other targets which have their own groups of services
+
+In addition to the dependencies in the unit file a target can also have a ".wants" direcotry that links to units
+Will be started along with the target
+
+systemctl get-default
+Return the default target to boot into
+Returns the target unit name default.target is aliased (symlinked) to
+
+systemctl set-default
+Set the default target to boot into
+This sets (symlinks) the default.target alias to the given target unit
+
+systemctl isolate
+Start the unit specific on the command line and it's dependencies and stop all others.
+
+=== Understanding BIOS, UEFI, and NVME Booting ===
+BIOS stands for Basic Input/Output System
+Firmware that is stored in a chip on the motherboard
+Detects and maps connected devices
+Performs a power-on-self-test (POST) of the system hardware
+Runs in 16-bit processor mode
+Supports devices using the Master Boot Record (MBR)
+
+UEFI stands for the Unified Extensible Firmware Interface (UEFI)
+Supports both the Master Boot Record (MBR) and the GUID Partition Table (GPT)
+Supports drives greater than 2.1 TB
+Runs in 32-bit or 64-bit mode
+Supports secure boot
+Supports Networking
+
+UEFI boot manager
+Method for interfacing between the operating system and firmware
+Composed of data tables containing platform related information as well as boot and runtime functions
+that are availble to the operating system and the boot loader.
+
+EFI System Partition (ESP)
+This is a special GPT partition with configurations and binaries normally located at /efi or /boot/efi
+
+UEFI shell
+This shell can be used to launch EFI applications (included bootloaders and to gain info about the system or firmware
+
+efibootmgr
+Userspace application used to modify the Extensible Firmware Interface (EFI) Boot Manager
+
+NVMe Booting
+NVME stands for Non-Volatile Memory Express
+Interface specification for accessing non-volatile memory storage media
+Support for NVME was added in kernel 3.3
+Booting form an NVMe device requires a motherboard with NVME support
+
+
+=== Understanding the GRUB and GRUB2 Bootloaders (Part 1) ===
+The Linux Boot process
+The BIOS/UEFI
+Validates that the hardware is functioning proper and locates a bootable device
+
+The Bootloader
+Loads the kernel and initramfs images
+
+The Kernel
+Configures the system, mounts the root file system and runs the main initialization process
+
+Post Kernel/Systemd
+Spawns the system and user level processes
+
+The GRUB Bootloader
+The Grand Unified Bootloader (GRUB) takes over from the bos at boot time and then loads the kernel as well as the initramfs (or initrd)
+Supports the kernel in booting the system
+
+The /boot directory
+This directory contains the kernel and initrd images as well as the /grub directory
+
+grub.conf
+This is the main configuration file for Grub
+It allows you to change thinks like the kernel boot order, menu timeout, menu image and even supplying a password for editing kernel arguments
+At the kernel boot menu, use 'e' to edit the kernel boot configuration an 'b' will boot into the kernel selected
+This will happen automatically once timeout is reached
+Appending 's' to the boot arguments will cause the system to boot into single user mode, which is init 1
+
+The Grub Shell
+Severe System issues can lead to booting into the GRUB shell.
+This can also be done manually from the GRUB menu by pressing 'c'.
+
+The GRUB2 Bootloader
+GRUB2 is version 2 of the legacy GRUB bootloader.
+Brings several improvements over GRUB, including support for UUIDs and a more programmatic approach to generating the GRUB configuration file.
+
+/etc/grub.d/ and /etc/default/grub
+/etc/grub.d/ contains template files and /etc/default/grub contains settings
+Both of which are used to create the grub.cfg configuration file
+
+grub2-mkconfig (CentOS) and grub-mkconfig (Ubuntu)
+These commands generate a new grub.cfg by reading the contents of /etc/grub.d/ and /etc/default/grub
+
+grub2-install (CentOS) and grub-install (Ubuntu)
+Install Grub on a device
+
+=== Recovering Filesystems and Working with Rescue and Emergency Targets ===
+fsck
+Checks and optionally repairs one or more Linux filesystems
+A filesystem can be a device name, a mount point, an ext label or a UUID specifier.
+If no filesystem is given and the -A option is not specified fsck will default to checking filesystems in /etc/fstab
+
+-A, Check files systems in /etc/fstab
+
+The fsck command is a front end for the various file system checkers (fsck.fstype)
+
+rescue.target
+A special target unit that pulls in the base system (including system mounts) and spawns a rescue shell.
+Isolate to this target in order to administer the system in single-user mode with all file systems mounted
+No services but the most basic will be running.
+Attempts to mount all local filesystems and start basic services
+Does not activate networking
+Does not allow logins
+Enter the rescue target by running
+systemctl isolate rescue.target or added system.unit=rescue.target or rescue to the kernel boot parameters
+
+emergency.target
+A special target unit that starts an emergency shell on the main console.
+This target does not pull in other services or mounts.
+it is the most minimal version of starting the system in order to acquire an interactive shell.
+Does not mount local filesystems (except /root)
+Mounts the root filesystem as read only
+Provides a basic shell and starts very basic services
+Enter the emergency target by running
+systemctl isolate emergency.target or adding system.unit=emergency.target or emergency to the kernel boot parameters.
+
+=== Understanding the SYSLINUX Project and Other Alternate Boot Loaders ===
+Syslinux
+A bootloader for the Linux operating system that runs on an MS-DOS/Windows FAT filesystem.
+It simplifies first-time installation of Linux and creation of rescue and other special purpose boot disks.
+The syslinux configuration files is syslinux.cfg and is searched for in the following order:
+/boot/syslinux/syslinux.cfg
+/syslinux/syslinux.cfg
+/syslinux.cfg
+
+Key configuration options
+Default - Default boot target
+Label - Name of target
+Say - Text to print when chosen
+Kernel - Name of the kernel file
+Append - Additional kernel options
+
+Installation Example
+syslinux --directory /boot/syslinux --install /dev/sdb1
+
+Extlinux
+A syslinux variant that boots from a Linux file system
+Originally only supported EXT filesystems
+Supports many filesystem types:
+EXT, FAT, NTFS, BTRFS, XFS and UFS/FFS
+Installer runs on a mounted filesystem rather than a raw device
+Ex. exlinux --install /mount/point
+Configuration file is extlinux.conf and should be in the same directory as the extlinux installation
+Configuration options are the same as syslinux
+
+ISOLinux
+A syslinux variant that creates a bootable CD_ROM for ISO 9660 filesystems
+All packages and binarys should be place in a directory called CD_root
+isolinux.bin and isolinux.cfg should be placed in a isolinux withint CD_root
+isohybrid allows isolinux to be installed on image files or block devices (the main binary is isohdpfx.bin)
+the mkisofs command is used to create the bootable ISO
+
+PXELinux
+Used for booting from a network server that confirms to the Preboot Execution Environment (PXE) specification
+Requires the installation of SYSLINUX on a RFTP server
+On the TFP server, create the directory /tftpboot
+Copy pxelinux.0 (the bootloader) and idlinux.c32(the library) to the tftpboot directory.
+Create a direcotry called pxelinux.cfg within the tftpboot directory.
+
+Create a configuration file in the pxelinux.cfg for each system by using
+the client UUID, MAC address, IPv4 address or lowercase default for default configurations
+
+PXE Boothing
+PXE stands for Preboot Execution Environment and it allows systems to boot over a local area network
+Support for PXE must be present in the network card and the BIOS/UEFI must be configured to allow it
+Once configured the system will receive an IP address from DHCP server and the necessary files for booting from a TFTP server.
+shim.efi is the initial UEFI bootloader used in a secure boot environment.
+grubx64.efi is the full grub bootloader for EFI systems using PXE booting
+shim.eft (if using secure boot) and grubx64.efi should be copied to a directory on the TFP server
+
+Systemd-boto
+A UEFI boot manager that executes configured EFI images
+Operates on the EFI System Partition (ESP)
+All configuraion files and boot images must reside on the ESP (e.g. kernels, initrds, etc.)
+In order to execute a kernel as an EFI image it must be build with CONFIG_EFI_STUB
+Uses a main configuration file to set the timeout and the default boot entry
+Each boot entry requires a configuration file that accepts a few basic keywords: title, options, efi, linux, initrd, etc.
+
+U-Boot
+Das U-boot or the Universal BOot Loader is an open-source primary boot loader for embedded systems
+A highly customizable bootloader
+Makes it popular with embedded and IOT devices
+Can be split into stages to accommodate size contraints
+Supports several different filesystems
+ext, FAT, btrfs, etc.
+
+=== Conclusion to Linux System Startup ===
+Undestanding the SysV-init Boot process
+The Linux standard Base establishes the standard for Linux operating systems.
+The following is the SysVinit boot process:
+It begins with init process
+the runlevel is determined by /etc/inittab
+Start (SNN) and Kill (KNN) scripts are run for the corresponding run level that links to the init scripts in /etc/init.d
+Notable commands,
+chkconfig, update-rc.d, init, telinit and runlevel
+
+Understanding the systemdboot process
+System initializes services in parallel
+Unit files are in three different locations and operate based on priority
+/etc/systemd
+/run/systemd
+/usr/lib/system
+
+A service unit encodes information about a process controlled by the system.
+A target unit links a group of units together to describe a desired system state
+
+Understanding BIOS, UEF and NVME booting
+BIOS stands for Basic Input/Output system
+responsible for detecting and mapping devices as well as performing tests of the system hardware
+Unified Extensible firmware interface (UEFI) improves on BIOS and provides for greater functionality
+NVMe booting is now supported as of kernel version 3.3
+
+Understanding the GRUB and GRUB2 Bootloaders
+GRUB is the Grand Unified Bootloader and is responsible for loading the kernl and initramfs images.
+Main configuration files grub.conf and canbe modieid to alter the boot menu and boot order.
+GRUB2 is version 2 of GRUB and uses the templates in /etc/grub.d and the settings in /etc/default/grub to build grub.cfg.
+
+Recovering Filesystems and Working with Rescue and Emergency Targets
+the fsck command is a frontend command for the various filesystem checkers and is used to check and repair filesystems
+The rescue and emergency targets are used for system maintenance.
+Rescue target attempts to mount local filesystems, starts basic service and does not allow logins or activate networking.
+Emergency target only mountes the root filesystem as read only and starts fewer system services
+
+Understanding the SYSLINUX project and other alternate boot loaders
+Syslinux project provides the following bootloaders
+extlinux
+isolinux
+pxelinux
+
+PXE Booting allows for systems to boot over a local area network.
+Systemd-boot is a UEFI boot manager that executes configured EFI images
+U-boot is an open-source primary boot loader for embedded systems
+
+=== Modifying Runlevels on Linux ===
+Configure the Runlevels on the CentOS Server
+
+Use the chkconfig command to disable the crond service for runlevels 2 and 4:
+
+chkconfig --level 24 crond off
+Use the chkconfig to enable the httpd service for runlevels 3 and 5:
+
+chkconfig --level 35 httpd on
+
+Modify the Initialization Script for the Postfix Service on the CentOS Server
+
+Use a text editor to modify the init script for postfix at /etc/rc.d/init.d/postfix with the following changes:
+
+Update this line:
+
+# chkconfig: 2345 80 30
+To be:
+
+# chkconfig: 3 78 35
+Update this line:
+
+# Default-Start: 2 3 4 5
+To be:
+
+# Default-Start: 3
+Apply the changes.
+
+Remove the postfix service:
+
+chkconfig --del postfix
+Add the postfix service:
+chkconfig --add postfix
+
+Remove the SysVinit Script Links for the Nginx Service on the Ubuntu server
+
+Use the update-rc.d command to remove init links for nginx:
+
+update-rc.d nginx remove
+
+Enable the Lighttpd Service for Runlevels 2 and 5 on the Ubuntu server
+
+Use the update-rc.d command to enable lighttpd for runlevels 2 and 5:
+
+update-rc.d lighttpd enable 2 5
+
+Create the Default SysVinit links for the Bluetooth Service on the Ubuntu server
+
+Use the update-rc.d command to add the defaults for the Bluetooth service:
+
+update-rc.d bluetooth defaults
+
+=== Modifying GRUB2 Boot Configuration (CentOS) ===
+Update /etc/default/grub
+
+Use a text editor to edit /etc/default/grub and ensure that the following options and values are present:
+
+GRUB_TIMEOUT=45
+GRUB_DEFAULT=saved
+GRUB_SAVEDEFAULT=true
+
+Create a Custom Menu Entry
+
+Copy the menuentry for a line that starts with menuentry 'CentOS Linux (3.10...) /boot/grub2/grub.cfg and add it to /etc/grub.d/40_custom.
+
+Once copied, remove the rhgb and quiet options from the kernel line and change the title to Verbose Output Enabled.
+
+Create a Backup of the Configuration File
+
+Use the cp command to create a backup of grub.cfg.
+
+cp /boot/grub2/grub.cfg /boot/grub2/grub.cfg.bkp
+
+Generate a New Configuration File with the Changes
+
+Use the grub2-mkconfig command to generate a new grub.cfg file.
+
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+== Chapter 6: Linux Filesystems and Devices ==
+=== Introduction to Linux Filesystems and Devices ===
+Mounting Filesystem
+Persistent mounts in /etc/fstab
+Linux swap space
+Systemd Mount Units
+Understanding the ext2/3/4 and XFS filesystems
+Understanding the Btrfs and ZFS filesystems
+AutoFS, automount
+CD Roms
+SMART
+
+=== Mounting Filesystems ===
+mount
+Mount a filesystem
+
+umount
+Unmount a filesystem
+
+sync
+Synchronize cached writes to persistent storage
+
+blkid
+Locate and print block device attributes
+Two main forms of operation
+Searching for a device with a specific NAME or displaying NAME value pairs for one or more devices
+
+/etc/fstab
+Field
+1st Describes a block special device, remote filesystem, filesystem image or swap file
+2nd Describes the mount point (or target) for the filesystem
+3rd Describes the type of filesystem (ext4, xfs etc.)
+4th Describes the mount options associated with the filesystem. Options include defaults, noauto, user, owner, comment and no fail
+5th Used by dump to determine which filesystems need to be dumped (0 disables)
+Used by fsck to determine the order in which filesystem checks are done at boot. Root filesystem should be 1 and all other's 2. 0 disables
+
+/etc/mtab
+Mount and umount maintained a list of mounted filesystems in /etc/mtab
+Now a symlink to /proc/mounts or /proc/self/mounts
+
+/proc/mounts
+Part of the proc virtual filesystem
+Presents data from the kernel about the mounted filesystems on the host
+Can be a symlink to /proc/self/mounts
+
+=== Understanding Linux Swap Space ===
+SWAP is used as a substitute for RAM
+/proc/swaps file can be viewed to determine swap in use
+
+swapon/swapoff
+Enable or disable devices and files for paging and swapping.
+
+mkswap
+Set up a Linux swap area
+
+=== Understanding Systemd Mount Units ===
+Systemd Mount Units
+unit configuration file that ends in .mount
+encodes information about a file system mount point
+controlled and supervised by systemd
+
+Systemd automatically creates unit files for all the entries in /etc/fstab
+Are in /run/systemd/generator
+Mount units can be manually created
+generally better to add to /etc/fstab
+
+=== Understanding the ext2/3/4 and XFS Filesystems (Part 1) ===
+ext2
+Developed to overcome some of the limitations of ext
+Max file size ranges from 16GB to 2 TB
+Max filesystem size ranges from 2 TB to 32 TB
+Supports 32,000 subdirectories
+Recommended for flash-based storage because of absence of overhead caused by journaling
+Can be directkly converted to ext3
+
+ext3
+Many of the base features remain
+Dedicated space for journaling
+Journaling levels
+Journal,
+Metadata and content are written to journal
+Ordered (default),
+Only metadata is written to the journal. Content is written before metadata is committed
+Writeback,
+Only metadata is written to the journal. Conten may be written before or after
+Supports online filesystem growth
+Introduces HTree indexing for larger directories
+
+ext4
+Max file size increased to 16 TB
+Max filesystem increased to 1 exbibyte
+Supports a virtually unlimited number of subdirectories
+Introduces journal checksums as well as several improvements to reliability and performance
+Backwards compatible w/ ext2 and 3
+
+mkfs (mkfs.*)
+Build a linux filesystem
+frontend deprecated in favor of filesystem specific mkfs (mkfs.ext4 etc.)
+
+fsck
+Checks and optionally repairs linux filesystems
+Filesystem can be a device name, mount point, ext2 label or UUID specifier
+frontend for various file system checkers
+
+tune2fs
+Adjust tunable filesystem parameters on ext2/3/4 filesystems
+
+dumpe2fs
+Dump ext2/3/4 filsystem information
+Prints the super block and blocks group information
+
+debugfs
+ext2/3/4 filesystem debugger
+Used to interactively examine and change the state of the filesystem
+-w specifies that filesystem should be opened in read-write mode
+
+XFS
+XFS stands for extents filesystem
+reference to the way blocks are allocated and managed
+Extents are one or more contiguous blocks
+Implements concept of allocation Groups (AG)
+equally sized linear regions on the filesystem
+Files and directories can span across AGs
+Each AG is resonsible for managing it's own inodes and free space
+
+Allocates blocks using extends
+Manages storage through allocation groups
+Implements journaling
+Supports filesystems and files (16 exbibytes and 8 exbibytes)
+
+xfs_info
+Display XFS filesystem geometry information
+
+xfs_check
+Check the consistency of an XFS filesystem
+Deprecated for xfs_repair -n
+
+xfs_repair
+Repair a corrupt or damaged XFS filesystem
+
+xfsdump
+Backs up files and their attributes to storage media
+-f specifies a device
+
+xfsrestore
+Restore a filesystem created by xfsdump
+-f specifies an xfsdump
+
+=== Understanding the ext2/3/4 and XFS Filesystems (Part 2) ===
+All CLI, skipped
+
+=== Understanding the Btrfs and ZFS Filesystems ===
+BTRFS
+B-tree filesystem
+copy on write filesystem
+Fault tolerance, repair and administration
+Features
+Space-efficient
+Snapshots
+Support for software-based RAID
+Subvolumes
+Self-healing
+Large file size and directory support
+Has own utilty btrfs
+
+btrfs-convert
+Perform an in-place conversion from ext2/3/4 to btrfs
+
+ZFS
+Zettabyte Filesystem
+Combines filesystem and file manager
+Copy on write
+Features
+Pooled Storage
+Snapshots
+Data integreity verification
+Self-healing
+Support for RAID and RAID-Z
+Large file size and directory support
+
+=== Using AutoFS to Automatically Mount Filesystems ===
+Indirect and Direct Mounts
+/etc/sysconfig/autofs
+Configuration file taht sets global options for autofs mounts
+
+/etc/auto.master
+main configuration file for autofs
+
+/etc/auto.map_name
+Individual map files for autofs
+
+Indirect mounts
+auto.master contains a directory that points to a map file that contains one or more subdirectories
+
+Direct mounts
+Directory in the auto.master is represented as "/-" and points to a map file that contains the individual directory to be mounted.
+
+=== Understanding CD-ROM Filesystems , Data Encryption, and SMART Devices ===
+CD Rom Filesystems
+ISO 9660
+File system for optical disk media
+Published by the International Organization for Standardization
+Read-only filesystem
+Standard for CD-ROM disks
+
+Universal Disk Format (UDF)
+Developed to overcome shortcomings of ISO 9660
+Often used for DVDs or rewritable media
+
+Hierarchical File System (HFS)
+Developed by Apple and the native filesystem used on Macs.
+Used on read-only media
+
+ISO 9660 extensions
+Rock Ridge
+Longer file names, POSIX permissions, groups, user IDs, device files and symbolic links
+Joliet
+Microsoft extension, allows Unicode characters and supports long file names
+El Torito
+Specifies in a standard way to make bootable CD-ROMs and DVDs
+
+mkisofs (genisoimage)
+Create ISO9660/Joliet/HFS filesystem with optional Rock Ridge attributies
+
+Linux Unified Key Setup (LUKS)
+Disk encryption
+Uses device mapper crypt kernel modul (dm-crypt)
+Provides transparent encryption for block devices
+
+cryptsetup
+Used to set up cryptographic volumes for dm-crypt
+
+smartd
+daemon that monitors the Self-Monitoring, Analysis and Reporting Technology (SMART) system built into many ATA-3 drives
+ATA, IDE, and SCSI-3
+/etc/smartmontools/smartd.conf
+Define devices and attributes to monitor and email addresses to notify in case of failure
+/etc/sysconfig/smartmontools
+Modify startup arguments for smartd
+
+smartctl
+Control and monitor utility for SMART disks
+
+=== Creating Swap Space on a Linux System ===
+Create and enable a swap partition using /dev/xvdg1.
+
+Use the mkswap command to create swap space on /dev/xvdg1:
+mkswap /dev/xvdg1
+
+Use the swapon command to enable the swap partition:
+swapon /dev/xvdg1
+
+Add an entry to /etc/fstab to ensure that the swap partition persists though a reboot (use the UUID).
+
+Obtain the UUID for the partition using the blkid command:
+
+Use the editor of your choosing (i.e., vim, nano, etc.) to add an entry to /etc/fstab for the swap partition:
+vim /etc/fstab
+
+At the bottom of the file add the following entry:
+UUID=partition_UUID swap swap sw 0 0
+
+Create and enable a 1 GB swap file in the root directory called "extraswap".
+
+Use the dd command to create a 1 GB file called extraswap:
+dd if=/dev/zero of=/extraswap bs=1M count=1024
+
+Update the permissions on the swap file to be read right only for the root user:
+chmod 600 /extraswap
+
+Use the mkswap command to turn extraswap into a swap file:
+mkswap /extraswap
+
+Use the swapon command to enable the swap file:
+swapon /extraswap
+
+Add an entry to /etc/fstab to ensure that the swap file persists through a reboot (use the full path to the file name).
+
+Use the editor of your choosing (i.e., vim, nano, etc) to add an entry to /etc/fstab for the swap file:
+vim /etc/fstab
+
+At the bottom of the file add the following entry:
+/extraswap swap swap sw 0 0
+
+=== Working with Systemd Mount Units ===
+Create a unit file for the data mount based on the information provided in the instructions and ensure that it is started and enabled.
+
+Create a unit file in /etc/systemd/system named mnt-data.mount with the following contents:
+[Unit]
+Description=Data mount
+
+[Mount]
+What=/dev/disk/by-uuid/filesystem_UUID
+Where=/mnt/data
+Type=xfs
+Options=defaults
+
+[Install]
+WantedBy=multi-user.target
+Update the systemd manager configuration to include a new unit file:
+systemctl daemon-reload
+
+Start and enable the mnt-data.mount unit:
+systemctl enable mnt-data.mount --now
+
+Create a unit file for the backup mount based on the information provided in the instructions.
+
+Create a unit file in /etc/systemd/system named mnt-backup.mount with the following contents:
+[Unit]
+Description=Backup mount
+
+[Mount]
+What=/dev/disk/by-uuid/filesystem_UUID
+Where=/mnt/backup
+Type=ext4
+Options=ro
+
+[Install]
+WantedBy=multi-user.target
+Create a mountpoint for mnt-backup.mount at /mnt/backup:
+mkdir /mnt/backup
+
+Update the systemd manager configuration to include a new unit file:
+systemctl daemon-reload
+
+Create an automount unit file for mnt-backup.mount based on the information provided in the instructions and ensure that it is started and enabled.
+
+Create a unit file in /etc/systemd/system named mnt-backup.automount with the following contents:
+[Unit]
+Description=Automount backup directory
+
+[Automount]
+Where=/mnt/backup
+TimeoutIdleSec=600
+
+[Install]
+WantedBy=multi-user.target
+Update the systemd manager configuration to include new unit file:
+systemctl daemon-reload
+
+Start and enable the mnt-backup.automount unit:
+systemctl enable mnt-backup.automount --now
+
+=== Configure /etc/fstab to Persistently Mount a File System ===
+Log in to the Lab Server and Gain `root` Access
+
+# sudo -i
+
+Format `xvdb`
+
+List the available system disks and format /dev/xvdb. Enter n for new partition, p for primary, and take the defaults. Type w to write the changes to the system.
+
+# lsblk
+# fdisk /dev/xvdb
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table
+Building a new DOS disklabel with disk identifier 0xae23de7b.
+
+Command (m for help): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1):
+First sector (2048-4194303, default 2048):
+Using default value 2048
+Last sector, +sectors or +size{K,M,G} (2048-4194303, default 4194303):
+Using default value 4194303
+Partition 1 of type Linux and of size 2 GiB is set
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Create the File System and Directory for `dbadmin`
+
+# mkfs.xfs /dev/xvdb1
+# mkdir /dbadmin
+
+Configure `xvdb1` to Be Persistently Mounted
+
+Configure /etc/fstab to persistently mount the /dbadmin file system as read-only. Mount the file system, verify it mounted successfully, and test creating a file in that directory.
+
+# blkid /dev/xvdb1
+# vim /etc/fstab
+	UUID:<YOURDEVICESUUID>		/dbadmin	xfs	ro,defaults	0	0
+# mount -a
+# df -h
+# cd /dbadmin
+# touch test
+ touch: cannot touch ‘test’: Read-only file system
+
+ Format `xvdc`
+
+List the available system disks and format /dev/xvdc. Enter n for new partition, p for primary, and take the defaults. Type w to write the changes to the system.
+
+# lsblk
+# fdisk /dev/xvdc
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+Device does not contain a recognized partition table
+Building a new DOS disklabel with disk identifier 0xae23de7b.
+
+Command (m for help): n
+Partition type:
+   p   primary (0 primary, 0 extended, 4 free)
+   e   extended
+Select (default p): p
+Partition number (1-4, default 1):
+First sector (2048-4194303, default 2048):
+Using default value 2048
+Last sector, +sectors or +size{K,M,G} (2048-4194303, default 4194303):
+Using default value 4194303
+Partition 1 of type Linux and of size 2 GiB is set
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+Syncing disks.
+
+Create the File System and Directory for `www`
+
+# mkfs.xfs /dev/xvdc1
+# mkdir /www
+
+Configure `xvdc1` to Be Persistently Mounted
+
+Configure /etc/fstab to persistently mount the /www file system. Mount the file system and verify it mounted successfully.
+
+# blkid /dev/xvdc1
+# vim /etc/fstab
+	UUID:<YOURDEVICESUUID>		/www	xfs	defaults	0	0
+# mount -a
+# df -h
+
+=== Creating Btrfs Subvolumes and Snapshots ===
+Create a btrfs filesystem based on the information provided in the instructions.
+
+Create a btrfs filesystem using /dev/xvdf1, /dev/xvdg1, and /dev/xvdj1:
+mkfs -t btrfs /dev/xvdf1 /dev/xvdg1 /dev/xvdj1
+
+Mount the btrfs filesystem on /mnt/data:
+mount -t btrfs /dev/xvdg1 /mnt/data
+
+Use a text editor (i.e., vim) to open /etc/fstab and add the following entry:
+UUID=filesystem_UUID /mnt/data btrfs defaults 0 0
+
+Create two subvolumes for /mnt/data based on the information provided in the instructions.
+
+Create the user and admin subvolumes in the /mnt/data filesystem:
+btrfs subvolume create /mnt/data/user
+btrfs subvolume create /mnt/data/admin
+Mount the admin subvolume at /mnt/admin and the user subvolume at /mnt/user:
+mount -t btrfs -o subvol=user /dev/xvdg1 /mnt/user
+mount -t btrfs -o subvol=admin /dev/xvdg1 /mnt/admin
+Use a text editor (i.e., vim) to open /etc/fstab and add entries for /mnt/user and /mnt/admin:
+UUID=filesystem_UUID       /mnt/user       btrfs   subvol=user,defaults    0 0
+UUID=filesystem_UUID       /mnt/admin      btrfs   subvol=admin,defaults   0 0
+
+Add the /dev/xvdj2 device to the filesystem mounted on /mnt/backup
+
+Add /dev/xvdj2 to filesystem mounted on /mnt/backup using the btrfs command:
+btrfs device add /dev/xvdj2 /mnt/backup
+
+Balance the filesystem to spread block groups across all devices:
+btrfs balance start --full-balance /mnt/backup
+
+Create two snapshots of /mnt/backup/user_data based on the information provided in the instructions.
+
+Create a snapshot called user_data_snap” from the user_data volume:
+btrfs subvolume snapshot /mnt/backup/user_data/ /mnt/backup/user_data_snap
+
+Create a read-only snapshot called user_data_snap_ro from the user_data volume:
+btrfs subvolume snapshot -r /mnt/backup/user_data/ /mnt/backup/user_data_snap_ro
+
+=== Configure AutoFS to Automatically Mount Filesystems ===
+Install the `autofs` Package and Start and Enable the `autofs` Service
+
+Use the yum command to install the autofs package:
+
+yum install -y autofs
+Start and enable the autofs service:
+
+systemctl enable autofs --now
+
+Create an Indirect Mount at `/mnt/marketing`
+
+Create the /mnt/marketing directory:
+
+mkdir /mnt/marketing
+Use a text editor to add the following entry to /etc/auto.master for /mnt/marketing:
+
+/mnt/marketing /etc/auto.marketing
+Create a map file for /mnt/marketing called /etc/auto.marketing with the following contents:
+
+assets -fstype=xfs :/dev/xvdg1
+backup -fstype=btrfs,ro :/dev/xvdg2
+Restart the autofs service to apply the changes:
+
+systemctl restart autofs
+
+Create a Direct Mount at `/mnt/admin/data`
+
+Use a text editor to add the following entry to /etc/auto.master:
+
+/- /etc/auto.admin
+Create a map file for the entry called /etc/auto.admin with the following contents:
+
+/mnt/admin/data -fstype=ext4 :/dev/xvdg3
+Restart the autofs service to apply the changes:
+
+systemctl restart autofs
+
+Create a Direct Mount at `/mnt/user/data`
+
+Use a text editor to add the following entry to /etc/auto.master:
+
+/- /etc/auto.user --timeout=3600
+Create a map file for the entry called /etc/auto.user with the following contents:
+
+/mnt/user/data -fstype=ext2 :/dev/xvdg4
+Restart the autofs service to apply the changes:
+
+systemctl restart autofs
+
+== Chapter 7: Advanced Storage and Device Administration in Linux ==
+=== Introduction to Advanced Storage and Device Administration in Linux ===
+Creating a Software RAID
+Understand the different RAID levels and learn about the configuration files and utilities that are used to create a Software RAID
+
+Managing Failover and Recovery of RAID devices
+Understand the tools and processes that are used to handle failover and recovery of RAID devices
+
+Working
+with Physical Storage Devices
+Learn how direct memory access (DMA) and interrupts requests allow hardware to interact with the system
+utilities that are used manage different types of hardware
+
+Creating an iSCSI Target and Initiator
+Understand how iSCSI provides raw block storage over a network
+Utilities that are used to create an iSCSI target and initiator
+
+Creating and managing logical volumes
+Learn about the architecture of Logical Volume Manager (LVM) and utilities used to create/resize logical volumes
+
+Working with LVM Snapshots
+Learn how to create, resize, and restore LVM snapshots
+
+=== Creating a Software RAID ===
+RAID
+Redundant Array of Independent Disks
+storage solution used to organize or combine a group of disks into one or more logical units
+Mirroring
+Striping
+Parity
+
+RAID 0
+Striping
+
+RAID 1
+Mirroring
+
+RAID 5
+Block-level striping with distributred parity
+
+Files and utilities for interacting with RAID
+mdadm.conf
+Main configuration file for management of software raid
+
+/proc/mdstat
+Displays snapshot of the kernel's RAID/md state
+
+0xFD partition type
+ID number that signifies a RAID partition
+
+mdadm
+utility for creating, managing and monitoring RAID devices using the md driver in Linux
+
+=== Working with Physical Storage Devices ===
+Direct Memory Access and Interrupt Handling
+Direct Memory Access allows hardware to effectgively bypass the CPU
+Send or receive data from the main system memory rather than taking up large quantities of processing time
+Process managed by a DMA controller (DMAC)
+
+A hardware interrupt or interrupt request (IRQ) is a signal sent by hardware to processor
+Interrupt suspends current activity of the processor in order to handle the external event
+
+hdparm
+utility used to view info about or set SATA/IDE device parameters
+Devices of this type will be /dev/hd*
+
+sdparm
+List or change SCSI/SATA device parameters and send simple SCSI commands
+Devices of this type will be /dev/sd*
+
+nvme
+Command line utility for managing PCI Express-based devices
+Devices of this type will be /dev/nvme*
+
+fstrim
+CLI utility for discarding unwanted blocks on a mounted filesystem
+Discards all unused blocks
+Provides options to modify this behavior based on range or size
+Systemd provides a timer for fstrim called fstrim.timer that runs on a weekly basis when enabled
+-a option will run fstrim against all mounted systems
+discard option can be set in /etc/fstab for automatic online TRIM, not recommended
+
+=== Creating an iSCSI Target and Initiator ===
+Internet Small Computer System Interface (iSCSI)
+Protocol that allows SCSI commands to be sent over a TCP/IP network
+Communication takes place between an initiator (the client) and a target (the server)
+
+ATA over Ethernet (AoE)
+Advanced Technology Attachment (ATA) protocol over ethernet network
+
+Fiber Channel over Ethernet (FCoE)
+Allows the Fibre Channel (FC) protocol over an internet network
+
+Creating an iSCSI target
+targetcli
+Shell for viewing editing and saving the configuration of the kernel's target subsystem
+
+Creating an iSCSI Target
+Create a backstore using nvme1n1
+Create a target with a unique iSCSI Qualified Name (IQN)
+Create an ACL, LUN and portal withing target portal group (TPG)
+ACL, Access Control Lists
+LUN, Logical Unit Number
+Portal, IP and TCP port pair for an iSCSI target
+
+Files and Utilities for the iSCSI Initiator
+iscsid.conf
+Config file for iSCSI
+Contains settings used by iscsid and isciadm
+
+initiatorname.iscsi
+Contains the initiator name
+Should mirror name from the ACL of the iSCSI target
+
+iscsid
+system daemon that manges iSCSI connections
+
+scsi_id
+Utility used to retrieve and generate a unique SCSI identifier
+Primarily used by other utilities such as udev
+
+iscsiadm
+Open-iscsi adminitration utility
+
+=== Creating and Managing Logical Volumes ===
+Working with physical volumes
+pvcreate
+Create a phsyical volume from a block device
+
+pvs
+Display info about physical volumes
+
+pvdisplay
+Display verbose info about physical volumes
+
+pvscan
+Scan all supported LVM block devices
+
+pvresize
+Update the size of a physical volume
+
+pvremove
+Remove a physical volume
+
+Working with volume groups
+vgcreate
+Create a volume group from physical volumes
+
+vgextend
+Add a physical volume to a volume group
+
+vgreduce
+Remove a physical volume from a volume group
+
+vgs
+Display info about volume groups
+
+vgdisplay
+Display verbose information about volume groups
+
+vgscan
+Display information about volume groups and rebuild the LVM cache
+
+vgchange
+Modify attributes of a volume group
+
+vgrename
+Change the name of a volume group
+
+vgremove
+Remove a volume group
+
+Working with Logical Volumes
+lvcreate
+Create a logical volume from a volume group
+-L specify the size
+-I specify the number of extents or exten percentage
+
+lvs
+Display info about logical volumes
+
+lvdisplay
+Display verbose info about logical volumes
+
+lvscan
+List all logical volumes in all volume groups
+
+lvrename
+Change the name of a logical volume
+
+lvchange
+Adjust the parameters of a logical volume
+
+lvremove
+Remove a logical volume from a volume group
+
+Resizing Logical Volumes
+lvextend
+Grow the size of a logical volume
+
+lvs
+Display info about logical volumes
+
+resize2fs
+Resize an ext2/3/4 filesystem
+
+xfs_growfs
+Expand an XFS filesystem
+
+lvreduce
+Reduce the size of a logical volume
+
+=== Working with LVM Snapshots ===
+Creating and managing Snapshots
+lvcreate
+Create a logical volume
+
+lvs
+Display info about logical volumes
+
+lvextend
+Increase the size of a logical volume or snapshot (COW table)
+
+lvreduce
+Reduce the size of a logical volume or snapshot (COW table)
+
+lvremove
+Remove a logical volume or a snapshot
+
+lvchange
+Adjust the parameters of a logical volume
+
+lvconvert
+Change logical volume layout
+
+=== Creating and Managing a Software RAID ===
+Create a RAID 5 Array Based on the Instructions
+
+Use the mdadm command to create the RAID 5 array.
+
+mdadm -C /dev/md0 -l raid5 -n 3 /dev/xvdf1 /dev/xvdg1 /dev/xvdj1 -x 3 /dev/xvdf2 /dev/xvdg2 /dev/xvdj2
+Create the mdadm.conf file to ensure the RAID is available on boot.
+
+mdadm -D -s -v > /etc/mdadm.conf
+
+Create an Ext4 Filesystem, Mount It, and Ensure It Persists Through a Reboot
+
+Use the mkfs command to create an ext4 filesystem on /dev/md0.
+
+mkfs -t ext4 /dev/md0
+Create the /mnt/raid mount point.
+
+mkdir /mnt/raid
+Mount /dev/md0 on /mnt/raid.
+
+mount -t ext4 /dev/md0 /mnt/raid
+Use the blkid command to obtain the UUID of /dev/md0:
+
+blkid /dev/md0
+Use a text editor to open /etc/fstab and add the following entry at the bottom of the file (using the UUID observed in the previous step):
+
+UUID=uuid_of_md0    /mnt/raid    ext4    defaults    0 0
+
+Fail the Active Devices in the Array One at a Time and Remove Them
+
+Fail the active devices using the -f option (Note: Wait until a spare device has been added to the array before proceeding to the next to prevent RAID failure. The state can be checked by running mdadm -D /dev/md0).
+
+mdadm -f /dev/md0 /dev/xvdf1
+mdadm -f /dev/md0 /dev/xvdg1
+mdadm -f /dev/md0 /dev/xvdj1
+Remove failed devices from the array.
+
+mdadm -r /dev/md0 /dev/xvdf1 /dev/xvdg1 /dev/xvdj1
+
+Add Three New Devices to the Array Based on the Instructions
+
+Add new devices to /dev/md0.
+
+mdadm -a /dev/md0 /dev/xvdf3 /dev/xvdg3 /dev/xvdj3
+Update /etc/mdadm.conf with new configuration changes.
+
+mdadm -D -s -v > /etc/mdadm.conf
+
+=== Configuring iSCSI on Linux ===
+Configure the iSCSI target
+
+Install the targetcli package.
+In the targetcli interface, create the block01, and block02 backstores from /dev/xvdf, and /dev/xvdg respectively.
+1. In the targetcli interface, create iSCSI target with the following unique IQN: iqn.2020-08.com.mylabserver.target:t1.
+
+In the targetcli interface, change to the tpg1 directory, and create LUNs from the block01 and block02 backstores.
+In the targetcli interface, create an acl for the iSCSI initiator called iqn.2020-08.com.mylabserver.initiator:init.
+From the command line, start and enable the target service.
+
+Configure the iSCSI Initiator
+
+Install the iscsi-initiator-utils package.
+Add the initiator name to /etc/iscsi/initiatorname.iscsi.
+Discover and connect to the iSCSI target.
+Ensure that the iscsisd and iscsi services are running (if not start them).
+
+Create File Systems on the iSCSI Devices and Ensure They Are Persistently Mounted
+
+Create file systems on /dev/sda, and /dev/sdb.
+Create mount points for the file systems on /mnt/accounting, and /mnt/marketing.
+Add entries to /etc/fstab for the file systems and then mount them.
+
+=== Working with Logical Volumes ===
+Create Two Logical Volumes Based on the Information Provided in the Instructions
+
+Once connected via ssh, elevate your privileges to root:
+
+sudo -i
+Create physical volumes out of the following partitions:
+xvdf1
+xvdf2
+xvdf3
+xvdf4
+Create a volume group called user_vg out of the physical volumes.
+Create a logical volume named dev_lv that is 200 MB.
+Create a logical volume named test_lv that is 64 extents.
+
+Create File Systems on the `dev_lv` and `test_lv` Logical Volumes
+
+Create an ext4 file system on dev_lv.
+Create an xfs file system on test_lv.
+Create two mount points: /mnt/dev and /mnt/test.
+Add entries for dev_lv and test_lv to /etc/fstab.
+Mount the dev_lv and test_lv file systems on /mnt/dev and /mnt/test respectively.
+
+Resize the `graphics_lv` and `docs_lv` Logical Volumes
+
+Increase the graphics_lv logical volume by 50 extents.
+Shrink the docs_lv logical volume by 100 MB.
+
+Perform a Snapshot of the `prod_lv` Logical Volume and Restore the `stage_snap` Snapshot to Its Origin Volume
+
+Create a snapshot of the prod_lv logical volume called prod_snap that has a size of 50 MB.
+Restore the stage_snap snapshot to its origin volume.
+Unmount /mnt/staging.
+Merge the stage_snap snapshot with its origin volume.
+
+== Chapter 8: Linux Network Configuration ==
+=== Introduction to Linux Network Configuration ===
+Managing Network Interfaces
+Configuring wired networks with the ifconfig and ip commands
+configuring wireless networks with the iwconfig, iwlist and iw commands
+
+Discovering Network Devices
+Viewing the ARP cache and discovering network devices using the ip neigh and arp commands
+
+Adjusting network routing
+Adjusting and modifying a host routing table using the ip route and route commands
+
+Monitoring network sockets
+Investigating network sockets using the ss and netstat command and viewing open files using lsof
+
+Monitoring network traffic
+Monitoring network traffic using the tcpdump command and scanning remote hosts using nmap
+
+Interacting with remote hosts
+Using the ping command to send ICMP echo requests to remote hosts and interacting with remote hosts over TCP and UDP with nc
+
+Understanding Network Configuration Files and Locations
+Working with interface configuration files and associated network configuration files
+Understanding NetworkManager
+
+Analyzing Network Disagnostics and Troubleshooting Network issues
+Using log files and utilities to analyze and troubleshoot network issues
+This includes traceroute, mtr, journalctl and dmesg
+
+Managing hostnames and restrictuing host-level access
+Modifying hotsnames using hostname and hostnamectl
+restricting access using /etc/hosts.allow and /etc/hosts.deny
+
+=== Managing Network Interfaces ===
+Loopback Device
+Special virtual network interface
+Allows internal communication on a computer
+Address of 127.0.0.1 and ::1
+Mapped to localhost
+
+ifconfig (deprecated)
+Displays information for active network interfaces
+ifconfig -a
+Display information for all network interfaces
+ifconfig DEVICE
+Display information for a specific interface
+
+ip
+show/manipulate routing, devices, policy, routing and tunnels
+ip help
+Display list of commands (wow RTFM'd by Cloud Guru, so helpful)
+
+ip link
+Show information for all interfaces
+ip link show dev DEV
+Show information for a single device
+
+Wireless Network Interfaces
+Service Set Identified (SSID)
+A unique identified that is used to define a wireless local area network (WLAN)
+differentiate from other similar networks in area
+
+iwconfig and iwlist (also deprecated)
+iwconfig
+Display information about all avilable wireless interfaces
+
+iwconfig DEVICE
+Display information about a wireless interface
+
+iwlist DEVICE scan
+Scan for available wireless networks
+
+iwlist DEVICE freq
+List available frequencies
+
+iwlist DEVICE scan
+List available bit rates
+
+iw
+Show/manipulate wireless deivces and their configuration
+
+iw Objects:
+dev INTERFACE, Network interface
+phy PHY, wireless device (by name)
+phy# PHY INDEX, wireless device (by index)
+reg, regulatory agent
+
+=== Discovering Network Devices ===
+arp
+arp -avn
+Display the contents of the ARP cache
+
+arp -i INTERFACE
+Display entries for an interface
+
+ip neigh
+Display neighbor objects
+
+=== Adjusting Network Routing ===
+ip route show
+Display the routing table
+
+ip route add
+Add a route
+
+ip route del
+Remove a route
+
+route -n
+Display routing table
+
+route add
+Add a route
+
+route del
+Remove a route
+
+=== Monitoring Network Sockets ===
+ss
+Utility use to investigate network sockets and dump socket statistics
+
+netstat  (Deprecated)
+Print network connections, routing tables, interface statistics, masquerade connections, and multicast memberships
+
+lsof
+Utility that lists open files
+
+=== Monitoring Network Traffic ===
+tcpdump
+Network traffic monitoring tool
+Can monitor protocols other than TCP
+Logical operates and and or can be used to combine filters
+
+nmap
+Network Mapper is a network exploration and security scanner. The network mapper services file is located at
+/usr/share/nmap/nmap-services
+
+=== Interacting with Remote Hosts ===
+ping/ping6
+Utilities to send ICMP ECHO_REQUEST to network hosts
+Provided by the iputils package
+
+All options can be used by ping/ping6 except for -F
+Used to allocate a 20-bit flow label on echo request packets
+
+nc
+A networking utility that provides several options for interactingwith hosts using TCP or UDP over IPv4 and 6
+Provided by nmap-ncat package
+
+=== Understanding Network Configuration Files and Locations ===
+Interface configuration files are named after the interface they reference
+ifcfg-eth0 etc.
+Located in /etc/sysconfig/network-scripts directory
+
+Additional Network Configuration Files
+/etc/hosts
+host configuration file associates hostnames with an IP address
+
+/etc/resolv.conf
+The resolver configuration file specifies DNS servers and searches domains for the host
+
+/etc/sysconfig/network
+Configuration file is used to specify global network settings
+
+/etc/nsswitch
+Name Service Switch (NSS) configuration file
+used to determine which source to obtain name-service information and in what order
+
+NetworkManager
+Attemps to automate and simplify network configurations
+Implements a dynamic network control and configuration daemon to ensure connections stay active
+Proactively creates temporary connections for detected network devices
+Provides user-friendly administrative tools
+GUI, nmtui and nmcli
+
+=== Analyzing Network Diagnostics and Troubleshooting Network Issues ===
+traceroute,
+Tracks the route packets take from an IP network on their way to a given host
+
+traceroute6
+Same but IPv6
+
+mtr
+Network diagnostic utility that combines traceroute and ping
+
+journalctl
+logging system introduced by systemd
+Implemented by the journald daemon
+Stores logins in a binary format
+Settings for systemd journal can be updated by modifying /etc/systemd/journald.conf
+Or by adding configuration files to
+/etc/systemd/journald.conf.d
+
+dmesg
+utilty used to examine or control the kernel ring buffer
+Reads all messages from the kernel ring buffer by default
+
+/var/log/syslog
+Main system log for Debian-based hosts
+Stares all global system activity and startup messages
+
+Options are controlled by /etc/syslog.conf or /etc/rsyslog.conf
+Additional configurations can be added to /etc/rsyslog.d
+
+/var/log/messages
+Main system log on RHEL-based hosts
+Stores all global system activity and startup messages
+
+Options are controlled by /etc/rsyslog.conf
+Additional configurations can be added to /etc/rsyslog.d
+
+=== Managing Hostnames and Restricting Host-Level Access ===
+Updating and viewing a system hostname
+/etc/hostname and /etc/HOSTNAME
+Used to store hostname of system
+/etc/HOSTNAME also used, but sometimes aliased to /etc/hostname
+
+hostname and hostnamectl
+used to show or set system hostname
+hostname HOSTNAME
+hostnamectl replace hostname command
+hostnamectl set-hostname HOSTNAME
+
+/etc/hosts
+This file is used to map hostnames and liases to IP addresses
+
+/etc/hosts.allow and /etc/hosts.deny
+Files are used to determine whether a client has permission to connect to a network on a remote host
+Format of both is as follows
+daemon_list : client_list : [:command]
+daemon list is a comma-separated list of service daemons
+client list is a comma-separated list of clients
+Command is an option command that is executed when a client tries to access a server daemon
+Keyword ALL may be used for the daemon and client lists in order to allow or deny access to all clients
+
+=== Managing Network Interfaces on a Linux Host ===
+Configure the ens5 Interface Using the ip Command
+
+Note: All tasks should be performed as the root user. sudo -i
+
+Remove the old ARP entry for the 192.168.1.11 address and the associated interface.
+Delete the IP address 192.168.1.11/24 from the ens5 interface.
+Add 10.0.2.10 as a primary IP address for ens5 and 10.0.2.20 as a secondary IP address. Both should have a broadcast address of 10.0.2.255.
+Ensure the ens5 network interface is online.
+Add a new entry to the ARP table for 10.0.2.10 with the associated MAC address.
+
+Configure the ens6 Interface Using the ifconfig Command
+
+Delete the 10.0.0.10/24 IP address from the ens6 interface.
+Add 192.168.1.20 as the primary IP address for ens6 with a netmask of 255.255.255.0 and a broadcast address of 192.168.1.255.
+Ensure the ens6 interface is online.
+Add an entry to the ARP table for 192.168.1.20.
+
+Set the ens5 Interface to Promiscuous Mode and Save Interface Statistics
+
+Set the ens5 interface to promiscuous mode.
+Save network interface statistics to /root/network_stats.
+
+=== Configuring Routing on a Linux Host ===
+Enable Access from Server 2 and Server 3 to the eth1 and eth2 Interfaces on Server 1
+
+On server 2, create a static route to enable access for the 10.0.3.0 network on the 10.0.2.20 interface on Server 1.
+
+On server 3, create a static route to enable access for the 10.0.2.0 network on the 10.0.2.20 interface on Server 1.
+
+Enable Access between Server 2 and Server 3
+
+On Server 1, create a static route for the 10.0.3.0 network on the 10.0.3.20 interface.
+On Server 1, create a static route for the 10.0.2.0 network on the 10.0.2.20 interface.
+
+Prohibit Access to the 10.0.1.0 Network on Server 3
+
+On Server 3, remove the static route for the 10.0.1.0 network on the 10.0.3.20 interface.
+On Server 3, prohibit access to the 10.0.1.0 network.
+
+=== Analyzing Network Traffic on a Linux Host ===
+Scan for Open Ports on Server 1 and Server 2
+
+On Server 3, use the nmap command to scan for open TCP ports on Server 1 and Server 2.
+# nmap -F 10.0.1.10
+# nmap -F 10.0.2.10
+On Server 3, use the nmap command to scan for open UDP ports on Server 1 and Server 2.
+# nmap -sU -F 10.0.1.10
+# nmap -sU -F 10.0.2.10
+On Server 3, use the nmap command to scan for open TCP ports and provide OS and version information on Server 1 and Server 2.
+# nmap -A -F 10.0.1.10
+# nmap -A -F 10.0.2.10
+On Server 3, use the nmap command to scan for open UDP ports and provide OS and version information on Server 1.
+# nmap -sU -A -F 10.0.1.10
+
+Analyze the Listening Sockets on Server 1 and Server 2
+
+On Server 1, use the ss command to view open TCP and UDP sockets that were discovered by the nmap command.
+# ss -tulnp
+On Server 1, view the open files for each service discovered by the nmap command and record the totals to a file (the file should be named after the service that the count is for).
+# lsof | grep ssh | wc -l > ssh
+# lsof | grep httpd | wc -l > http
+# lsof | grep cupsd | wc -l > cups
+# lsof | grep ntpd | wc -l > ntp
+On Server 2, use the ss command to view open TCP sockets that were discovered by the nmap command.
+# ss -tlnp
+On Server 2, view the open files for each service discovered by the nmap command and record the totals to a file.
+# lsof | grep sshd | wc -l > ssh
+# lsof | grep master | wc -l > postfix
+# lsof | grep nginx | wc -l > nginx
+
+Perform a Packet Capture of the 10.0.3.20 Interface on Server 1
+
+On Server 1, determine which interface has the 10.0.3.20 address and list the interfaces available for use with the tcpdump command.
+# ip addr show
+# tcpdump -D
+On Server 1, use the tcpdump command to record 5 packets from the 10.0.3.20 interface and save it to a file called 10-0-3-20.pcap. Then, view its contents.
+# tcpdump -i eth1 -c 5 -w 10-0-3-20.pcap
+# tcpdump -r 10-0-3-20.pcap
+
+=== Configuring Network Interfaces on Linux ===
+Configure the eth1 Interface Using Network Scripts on Server 1
+
+On Server 1, configure the eth1 interface using network-scripts:
+
+In /etc/sysconfig/network-scripts, create a copy of ifcfg-eth0 called ifcfg-eth1.
+Update ifcfg-eth1 to have the following specifications:
+Set the boot protocol to none.
+Set the device to eth1.
+Match the MAC address to the one assigned to the eth1 device.
+Set the IP address to 10.0.2.20.
+Set the netmask to 255.255.255.0.
+Set the broadcast address to 10.0.2.255.
+Restart the network service.
+Ensure the interface is up and running
+
+Configure the eth1 Interface Using nmcli on Server 2
+
+On Server 2, configure the eth1 interface using nmcli:
+
+Ensure that network manager is started and enabled
+Configure the eth1 connection using nmcli with the following specifications:
+Set the connection name to System eth1.
+Set the interface name to eth1.
+Set the IP address to 10.0.3.20.
+Set the netmask to 255.255.255.0.
+Ensure that the eth1 interface is up and running.
+
+== Chapter 9: Linux System Maintenance ==
+=== Introduction to System Maintenance ===
+Installing and patching a program from Source
+Installing ap rogram from source using the configure script to create a makefile
+make command to compile the program
+make install to install it
+Patching a program using the diff and patch commands
+
+Comparing different backup media and network backup solutions
+Understanding directories to consider for backup
+media used for storage
+networking solutions available to assist in backup opertaions
+
+Creating and restoring backups
+using the tar, rsync and dd commands to create and restore backups
+
+Notifying users of System-Related Issues
+using automated issues to notify users of system related issues with /etc/issue, /etc/issue.net and /etc/motd
+Communicate with users using the wall and shutdown commands
+
+=== Installing and Patching a Program from Source ===
+Directories for storing and building source files
+/usr/src
+main default for storing source files
+Per FHS, directory should be used for reference
+Sources shouldn't be built
+
+/usr/local
+For use by the system administrator when installing software locally
+/usr/local/src can be used for storing source code
+
+/opt
+Reserved for the installation of add-on application software packages
+Files should be placed in /opt/package directories
+or /opt/provider trees
+Provider is provider's LANANA (Linux Assigned Names and Numbers Authority)
+
+gzip (gunzip)
+Compresses files using Lempel-Ziv coding (LZYY)
+can only compress single files but can be used on tar archives
+Compressed files should end in .gz, .z or .tgz for tar files
+
+bzip2 (bunzip2)
+COmpresses files using Burrows-Wheeler block sorting text compression and Huffman coding
+bzip2 files should end in bz2, bz, tbz2 (tar) or tbz (tar)
+
+xz (unxz)
+General-purpose compression tool with a similar command-line syntax to gzip/bzip2
+File extensions should end in .xz or .txz (tar)
+
+tar
+Creates a tar file by converting groups of files and directories into an archive
+Was originally used to create archives on tape
+Tar files end with the tar extension and any compression (tar.gz etc.)
+
+Installing a program from source
+configure
+screipt checks the system to ensure the project can be built
+Creates the makefile
+Allows for options that can alter the build
+
+Makefile
+Contains the instructions that are required in order to build the project
+
+make
+Reads the project specific Makefile and performs all the actions required in order to build the program
+
+make install
+Installs the compiled program to a default location or the one specified by the configure script
+
+patch
+File containing the difference listing produced by the diff command and applies those difference to one or more original files
+
+=== Comparing Different Backup Media and Network Backup Solutions ===
+Directories to back up
+/home
+/etc
+/usr/local
+/opt
+/root
+/srv
+
+Directories to back up (var)
+/var/backups
+/var/lib
+/var/log
+/var/mail
+/var/www
+
+Magnetic tape
+pros
+cost efficient
+storage cap
+Reliability
+Security
+
+Cons
+Higher upfront cost
+Slower data access
+Susceptible to natural disasters
+
+mt
+mt is provided by mt-st
+Used to control magnetic tape drive
+Tape devices appear as /dev/st for rewinding tape
+/dev/nst for non-rewinding tape
+
+Optical Media Storage
+Pros
+size, cost, speed
+
+Cons
+Storage cap, durability, speed
+
+Hard Disk Storage
+Pros
+Cost effective, high storage, reliable, available
+
+Cons
+Speed, size, power usage, durability
+
+AMANDA
+Advanced Maryland Automatic Network Disk Archiver
+Allows backup of server over network to tape
+Uses native utilities (dump, tar)
+Uses a Windows client to back up desktops and servers
+Developed at University of Maryland
+Used to back up multiple computers on a networ
+Implements a client-server model
+Has a free and enterprise edition
+Can back up multiple versions of Linux/Unix
+Supports tape, disk and cloud based backups
+
+Bacula
+Client-Server model
+Supports Linux, Unix, Windows and Mac
+Bacula has enterprise edition
+Various storage medias (tape, disk etc)(
+module
+robust backup solution intended for more advanced users
+Bacula components
+Director, Console, File, Storage, Catalog and Monitor
+
+Bareos
+Backup Archiving REcovery Open Sourced
+Fork of Bacula
+Web interface
+Professional services
+Supports multiple storage media types (disk, tape and cloud)
+Implements the same core components as Bacula
+
+Backup PC
+Hosted on Github and distributed under GPL
+Web interface
+initiate/restore backups
+view logs and configs
+Data deduplication (or pooling) so identicatal files across backups are only stored once
+Uses compression on new files
+Doesn't not require client-side software
+SMB protocol used to extract backup data on Windows clients
+tar over ssh/rsh/nfs used to back up data on Linux, rsync supported as well
+
+=== Creating and Restoring Backups ===
+tar
+Creates a file by converting groups of files and directories into an archive
+
+rsync
+Stands for remote sync
+Used for copying and synchronizing files both locally and remotely
+
+dd
+Used to convert and copy files
+Extends to disks/partitions which can be transferred to/from other disks/partitions
+
+=== Notifying Users on System-Related Issues ===
+/etc/issue and /etc/issue.net
+/etc/issue
+text file that contains a message or system identification to be printed before the login prompt
+May contain @char and \char sequences
+Depends on getty-teyp program employed on the system
+
+/etc/issue.net
+historical location for pre-login banners
+used for protocols like telnet or rlogin but can be used for SSH
+
+Banner path in /etc/ssh/sshd_config must be updated and the sshd service must be restarted
+
+/etc/motd
+Contents displayed after successful login
+Message Of The Day
+Uses less space than mail to all users
+
+wall
+Displays a message, contents of a file or otherwise it's standard input on the terminals of all logged in users
+
+shutdown
+used to halt, power off or reboot the machine
+shutdown time may be in hh:mm or +m where m is the number of minutes from now
+now is alias for +0
+In order to send a wall message you must specify a time
+
+=== Compiling a Program from Source ===
+Download and Extract the Source Files to /usr/local/src
+
+Change directories to /usr/local/src and download the source files with wget using the URLs provided:
+
+nginx: https://nginx.org/download/nginx-1.19.6.tar.gz
+httpd: https://archive.apache.org/dist/httpd/httpd-2.2.9.tar.bz2
+Then, extract the source files to /usr/local/src.
+
+Install nginx to /usr/local
+
+Change directories to the top level directory for nginx-1.19.6. Then, run the configure script to create the Makefile based on the instructions provided (resolve any dependencies).
+
+The install location should be /usr/local/nginx.
+The rewrite and gzip modules should be excluded.
+Compile the program, install the program, and validate the installation by starting the service.
+
+The nginx service can be started by issuing ./nginx from the sbin directory within the install.
+The nginx service can be stopped by issuing ./nginx -s stop from the sbin directory.
+Ensure the service is shut down before proceeding to the next step.
+
+Install apache httpd to /opt
+
+Change directories to the top level directory for httpd-2.2.9. Then, run the configure script to create the Makefile.
+
+The install location should be /opt/httpd-2.2.9.
+Compile the program, install the program, and validate the installation by starting the service.
+
+The service can be started by issuing ./apachectl -k start from the bin directory within the install.
+
+=== Performing Backups and Restores on a Linux Host ===
+Use the tar Command to Create Backups of Directories on the server01 Host
+
+Create an archive called full_bkp.tgz in /home/cloud_user using gzip compression on the following directories: /home, /etc, /opt, /usr/local, /root, and /srv.
+Create an archive called var_bkp.tbz in /home/cloud_user of the /var directory using bzip2 compression.
+
+Use the dd Command to Create and Restore Backups of Devices on the server01 Host
+
+Use /home/cloud_user/xvdg.img to restore the /dev/xvdg device (use a byte size of 4MB).
+Create an image file of /dev/xvdf in /home/cloud_user/, and call it xvdf.img.bz (it should be compressed with bzip2).
+Once the xvdf.img.bz file has been created, wipe the /dev/xvdf device using the /dev/zero device.
+
+Synchronize Backups to server02 Using the rysnc Command on the server01 Host
+
+Sync (with compression) var_bkp.tbz and full_bkp.tgz to /home/cloud_user/archive on server02. Permissions and timestamps should be preserved.
+Sync xvdf.img.bz to /home/cloud_user/archive. Do not use archive mode or compression.
+Sync (with compression) the following directories to /home/cloud_usr/sync on server02: /home, /etc, /opt, /usr/local, /var/lib, /var/log, /root, /srv. Permissions and timestamps should be preserved.
+
+Validate the Backup Files and Directories Were Successfully Copied on the server02 Host
+
+List the contents of the /home/cloud_user/archive directory.
+List the contents of the /home/cloud_user/sync directory.
+
+=== Creating Logon Messages to Communicate with Users in Linux ===
+Use /etc/issue to Present a Message to Users Logging In Locally Based on the Instructions Provided
+
+Update /etc/issue to include the name of the operating system, date, and time, and the number of current users using escape characters.
+
+Use /etc/issue.net to Present a Message to Users Logging In Remotely Based on the Instructions Provided
+
+Use a text editor to add the following text to /etc/issue.net: "Warning! This system is for authorized users only. To obtain access, email admin@acloud.guru."
+Update the Banner path in /etc/ssh/sshd_confi to point to /etc/issue.net, and restart the sshd service.
+Test the change by attempting an additional login to the host.
+
+Use /etc/motd to Present a Message to Users Who Have Successfully Logged In Based on the Instructions Provided
+
+Add the following message to /etc/motd:
+
+"Welcome to server01!
+
+- Maintenance will occur at 8:00 pm on the last friday of the month. - Local software should be installed in /opt - For elevated permissions email admin@acloud.guru"
+
+Validate the change by logging into the host.
+
+Notify Users of Upcoming System Maintenance and Issue a Power-off on the Host to be Performed in 4 Hours from the Current Time
+
+Send a wall message using the text file maintenance.txt in /home/cloud_user (suppress the banner message).
+Using the shutdown command, schedule a power-off of the system to take in 4 hours of the current time.
+Cancel the shutdown (optional).

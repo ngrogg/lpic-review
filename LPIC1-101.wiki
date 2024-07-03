@@ -1,0 +1,1839 @@
+[[index|back]]
+
+= LPIC1-101 =
+== Determine and configure hardware settings ==
+=== Pseudo File Systems ===
+Information stored in file system headers
+Every file/folder is a file itself
+Psudo file system doesn't exist on file system
+Only exists in RAM while system is running
+Two main pseudo file systems to know:
+/proc
+/sys
+
+Proc dir
+Contains information about the processes running on a system.
+Processes are listed by PID, with hardware and process data both in the same
+directory structure.
+Directories w/ number coorelate to a number
+Numbers are PIDs
+
+In /proc all processes that are running are in this folder
+Each directory includes information about running processes
+
+Sys dir
+Contains information about the system's hardware and kernel modules.
+No process information is stored here
+fs contains information about filesystem such as xfs
+
+=== Working with kernel modules ===
+Core framework of the operating system
+Provides a way for the rest of the system to operate with hardware, memory
+networking and itself
+Linux kernel is monolithic, handles all memory and hardware device interactions
+Extra functionality can be loaded and unloaded dynamically
+Systems don't have to be rebooted for added functionality.
+
+uname,
+displays information about the currently running kernel
+-m, architecture
+-r, kernel version
+-a, all information
+
+lsmod,
+displays a list of all currently loaded kernel modules
+
+modinfo,
+Diplays information about a specified kernel module
+modinfo MODULE
+
+modprobe,
+Command used to dynamically load/unload kernel modules at runtime
+modprobe -r MODULE, remove a kernel module
+modprobe MODULE, reload kernel module
+
+=== Investigating hardware ===
+udev,
+linux device manager for the kernel, links info on system to /dev
+
+/dev,
+contains information on all of the connected hardware on a system
+
+D-Bus,
+Sends data messages between applicates as a conduit of information about
+what is going on in the system. udev uses udev to notirfy users and the system when
+new hardware is attached.
+
+lspci,
+DIsplays information on PCI devices attached
+
+lsusb,
+Displays information on USB devices attached
+
+lscpu,
+Displays information on processors on a system
+
+lsblk,
+Displays information on all block devices on a system
+
+udev via D-Bus -> /dev
+Pseudo filesystem
+Handles for all devices connected to the filesystem
+
+lsblk, via D-Bus -> /dev
+
+== Boot the System ==
+=== The Linux boot sequence ===
+GRUB = GRand Unified Bootloader
+Bios -> Boot sector -> Linux Kernel -> Initial RAM disk
+
+dmesg,
+traditional utility used for viewing the kernel ring buffer
+
+journalctl -k
+systemd utilty to view the kernel ring buffer within the systemd journal
+
+=== init ===
+init, short for initialization
+Based off of the System V init used in UNIX systems
+Services are started one after the other in a serial fashion
+Slower boot, simpler
+
+First place kernel looks
+/sbin/init
+Reads /etc/inittab
+
+runlevels
+0, halt
+1, singler user Mode. Root user only usually
+2, Multi-user mode (no networking)
+3, Multi-user mode (networking)
+4, unused
+5, Multi-user, with networking and GUI
+6, Reboot
+
+/etc/inittab
+id:3:initdefault
+
+wait,
+The process specified will be started once when the runlevel is entered
+and init will wait for it's termination
+
+First, boot disk is found by boot loader
+Kernel and RAM disk are loaded
+Drivers are pulled out
+init performs some system maintence from init scripts
+Starts run level 3
+System is ready for use
+
+RPM: /etc/rc.d
+DEB: /etc/init.d
+
+/etc/init.d,
+contains the scripts for the services on the sysem
+/etc/init.d/rc.,
+script that orchestrates how the runlevel scripts run and what occurs when
+runlevel is changed
+
+=== upstart ===
+First developed for Ubuntu
+Used in Ubuntu 6.10
+Used in RHEL 6, Debian and Fedora 9
+Asynchronous start of services, decreased boot up times
+Works off of real-time events
+Upstart will attempt to start a service if it stops
+
+Upstart uses /sbin/init
+/sbin/init -> startup -> mountall
+-> /etc/init/rc-sysinit.conf -> telinit -> runlevel -> /etc/init/rc.conf
+Simplified view
+
+SysV is not aware of a change on a system
+New monitors would not be aware of new monitor
+When something changes on a system it triggers an event
+
+Default state is a waiting state, moves to starting, running, stopping and killed
+Finally goes to post-stop and back to waiting state
+Upstart will attempt to restart a job 10 times after 5 seconds each time
+
+=== systemd ===
+systemd unit files
+
+Doesn't rely on shell scripts
+Doesn't need to run through BASH interpreter
+Inefficient use of time
+C code replacements
+Still compatible with older sysv scripts
+
+Three main locations for unit files,
+/usr/lib/systemd/system, do not edit those files
+/etc/systemd/system, these unit files can be edited, supercede above files
+/run/systemd/system
+
+Verify unit files on a system:
+systemctl list-unit-files
+
+Unit files formatted like MS-DOS ini files
+[Unit]
+Description=Multi-User System
+^^ Doesn't need to be in quotes
+Documentation=man:systemd.special (7)
+Can be space delimited
+Requires=basic.target
+Wants=
+Wants won't fail service if unavailable
+After=basic.target rescue.service rescue.target
+
+Review unit files
+ssytemctl cat something.unit
+
+kernel looks for /sbin/init
+symlink to /lib/systemd/systemd
+
+== Change Runlevels/Boot Targets ==
+=== Change your working environment: runlevels ===
+Runlevel 4 is used for custom environments
+
+runlevel,
+view your current runlevel
+
+telinit,
+change to another runlevel
+
+To change runlevel at boot,
+INterrupt the GRUB boot process by pressing any key during startup, then at the the
+GRUB selection Menu highlight a kernel to modify, press the 'a' key to add an
+argument to the end of a kernel line, enter in a runlevel number.
+
+=== Change your working environment: targets ===
+Target,
+a unit that syncs up other units when the computer boots or changes states
+
+Often used to bring the system to a new state
+ie a state with a just a command line: multi-user.target
+
+Common types of targets:
+Multi-user.target - multi-user system similar to what runlevel 3 provides
+graphical.target - similar to runlevel 5
+rescue.target - similar to runlevel 1
+basic.target - basic system, used during boot process
+sysinit.target - system initialization
+man 5 systemd.target
+man 7 systemd.special
+
+Systemd set default target
+systemctl set-default multi-user.target
+
+Systemd check default target
+systemctl get-default
+
+=== Reboot and shutdown your system ===
+Reboot commands,
+reboot
+telinit 6
+shutdown -r now
+systemctl isolate reboot.target
+
+wall,
+broadcasts a message to all logged in users. After message is typed, press Ctrl+D
+to terminate
+
+Shutdown commands,
+poweroff
+telinit 0
+shutdown -h +1
+systemctl isolate poweroff.target
+
+acpid
+Advanced Configuration and power interface, registers system events such as pressing
+the power button or closing laptop lid.
+
+/etc/acpi/events
+Two conf files
+Power and video
+Looking for a power button to be pressed
+Will fire off an action
+
+Check the default target,
+systemctl get-default
+
+Change the default target,
+sudo systemctl set-default graphical.target
+
+Check the default target again.
+
+== Design Hard Disk Layout ==
+=== Main file system locations ===
+Primary locations you must know
+/, root directory
+/var, variable location. Stores dynamic contenct such as web sites and log files
+/home, user's home directory where personal files are stored.
+/opt, optional. Usually used by 3rd party software vendors.
+/boot, where linux kernel and supporting files are stored.
+
+Swap space is temporary storage that acts like RAM
+Swap partition is the most common setup
+Swap files, similar to page file
+Slower than /swap
+
+Old rule of thumb, 1.5 -> 2x available RAM
+Recommended not to have less than 50% of available RAM
+
+Partitions and mount points
+/dev/sda
+/dev, contains all devices
+
+mountpoint, take a parition of a disk and mount it to specific directory
+mount, can be used to mount partitions to directorys, or show all existing mounts wihtout any options
+fdisk -l /dev/diskname, Can be used to list out parition information on the specified disk
+lsblk, used to show all block devices on a system and their names
+swapon --summary, Shows a summary of the swap usage on the system. Same infmation can be found in /proc/swaps
+
+=== Introduction to LVM ===
+LVM, Logical Volume Manager
+Allows for creation of groups of disks or partitions that can be assembled into a single or multiple filesystems
+Can be used for any mount point except /boot
+Can be resized
+Can be snapshotted
+
+Example,
+Bottom
+PV, physical disks
+VG, volume group. Encompasses all disks
+LV, Logical volumes. Carve up VG into directories
+File system (/, /swap etc.)
+
+pvs, Lists out the physical volumes in an LVM group
+vgs, Lists out the volume groups within an LVM group
+lvs, Lists out the logical volumes within an LVM group
+
+== Install a boot manager ==
+=== Legacy Grub ===
+GRand Unified Bootloader
+BIOS > Bootloader locates MBR boot.img > core.img > /boot/grub grub.conf/menu.lst device.map
+BIOS > Stage 1 > Stage 1.5 > Stage 2
+
+default =0, which kernel to boot first
+timeout =5
+title OS (Kernel)
+kernel kernel version
+initrd, ram disk
+title OS (kernel), an older version of the kernel
+
+Install Grub
+grub-install [device] :
+findmnt /boot
+Device can be /dev/sda or /dev/hd0 or '(hd0)'
+
+Can also use the grub command
+
+From grub prompt, use 'find /grub/stage1'
+/boot is root
+
+grub-install is typically already done by a live cd
+
+Grub shell commands
+grub, Invokes the grub shell
+help, lists commands
+find, /filepath, search for a file in all paritions
+quit, quit shell
+Can hose system
+Backup config file
+
+=== Grub2 ===
+MBR (Master Boot Record)
+traditionally only support 26 total partitions ( 4 partitions, with one partition extended to 23 partitions)
+Partition size limited to 2 TB
+
+GPT (GUID Partition Table)
+Supports 128 partitions
+Partition size up to ZB (Zetabyte) range, 1 ZB = 909,494,701.8 TB
+
+UEFI (Unified Extensible Fireware Interface) to boot
+Needs 64 bit OS
+Prevents unauthorized OS's from booting on system
+
+UEFI BIOS > Looks for MBR (boot.img) > empty sectors core.img > /boot/eft vfat/FAT32 ESP file system > /boot/grub2 grubenv themes
+Has GPT header
+Parition entry array
+Large listing of partitions and ID numbers
+
+RPM: grub2-command
+DEB: grub-command
+
+grub-editenv list, view the default boot entry for the grub conf file
+grub2-mkconfig, creates or updates a /boot/grub2/grub.cfg file based on /etc/default/grub
+
+update-grub, command that can be used to update a GRUB2 configuration after changes to /etc/default/grub have been made
+
+=== Interacting with the boot loader ===
+GRUB Legacy
+A, append options to the kernel boot line
+C open up the grub command line
+ESC, Escapes out of any grub menu
+Arrow keys, navigation
+
+rhgb quiet lines, shows all kernel messages
+
+When reinstalling grub, use the setup command
+setup (hd0)
+^^ This is how I fixed an old Ubuntu 14.04 install back in the day
+
+GRUB 2
+E, edit a menu item
+Ctrl+x boot selection/modified line
+systemd specific command to boot into unit
+linux /boot/vmlinuz-kernel root=UUID ro systemd.unit=rescue.target
+
+ls to view partitions
+(hd0,msdos1) refers to system using MBR instead of GPT
+ls (hd0,1)/
+
+Manually boot system with GRUB command line
+set root=(hd0,1)
+linux /boot/vmlinuz-4.#.# root=/dev/vda1
+Use tab to autocomplete
+
+Set up ram disk
+initrd /boot/initrd.img-4.#.#
+Tab it out
+
+boot
+Loads configuration
+
+== Manage Shared Libraries ==
+=== Manage Shared Libraries ===
+Files containing functionality that other applications can use
+End in a .so extension, Shared Object
+/lib
+/usr/lib (32 bit) /usr/lib64 (64 bit)
+/usr/local/lib
+/usr/share
+
+Two types
+dynamic (.so)
+statically linked (.a)
+
+ldd
+prints out shared object library dependecies
+
+ldconfig
+configures dynamic linker run-time bindings
+creates a cache based on library directories and can show you what is currently
+in cache
+
+/etc/ld.so.conf
+Configuration file that points to directories and other configuration files that
+hold references to library directory locations
+
+LD_LIBRARY_PATH
+Legacy environment variable that points to a path where library files can be read
+from
+
+== Use Debian Package Management ==
+=== The advanced package manager (apt) ===
+Apt installs dependencies, dpkg does not
+
+Reads /etc/apt/sources.list, list of sources
+deb URL Distribution Type
+deb-src, includes source code for repo above
+Directs installation/removal of packages to dpkg
+
+update, upgrade, install
+
+apt-get doesn't remove conf files
+If you want to remove the rest of the dependencies use autoremove
+
+purge, removes the package and any associated conf files
+dist-upgrade, upgrades all packages on the system up to the next release
+
+download, downloads package without installing it
+
+apt-cache search, look through local apt cache for program
+
+apt-cache show, list basic info for package
+
+apt-cache showpkg, displays more technical information about a package
+
+=== Using Debian package (dpkg) ===
+deb packages contain
+app/utility, conf files, how/where to install file, list of dependencies
+
+need dependeicies installed.
+
+dpkg --info
+Displays info on a package
+
+dpkg --status
+Same as --info, but less detailed
+
+dpkg -l
+lists out packages that match the provided string
+
+dpkg -i
+installs specified packages
+
+dpkg -L
+Lists out all files that were installed with a specific package
+
+dpkg -r
+Remove a package
+
+dpkg -P
+Removes a package and it's conf files
+
+dpkg -S
+Search package database for file specified and list out mentions of file/string
+
+dpkg-reconfigure
+Allows for modification of a package by re-running the app's config tool
+
+== Use RPM/YUM Package Management ==
+=== The yellowdog updater, modified (yum) ===
+Yellowdog Updater, Modified
+Yellowdog Linux
+
+Handles RPM dependencies
+
+yum conf /etc/yum.conf
+Repos at /etc/yum.repos.d
+cache repo info at /var/cache/yum
+
+Zypper
+SUSE
+zypper repos, lists repos
+zypper install PROGRAM
+
+DNF
+Used on Fedora
+Uses same syntax as Yum
+
+update, ,search, info, list installed, clean all
+
+Content of repo
+base-url, where package is from
+
+install, remove, autoremove, reinstall
+
+yum whatprovides
+Find out what package provides a specified file name
+
+yumdownloader
+download rpm file
+
+=== The red hat package manager (rpm) ===
+RPM package contains
+app/utility
+conf files
+instructions
+list of dependencies
+
+Located in /var/lib/rpm
+
+rpm --rebuilddb
+Rebuild rpm database
+
+Doesn't handle dependencies
+
+rpm -qpi
+display info on package
+
+rpm -qpl
+Lists files in a package
+
+rpm -qa
+Lists out all installed packages
+
+rpm -i
+Installs a specified package
+
+rpm -U
+Upgrades an installed package
+
+rpm -e
+Erase package from system
+
+rpm -Va
+verify all installed programs
+Useful for security auditing
+
+rpm2cpio
+Convert an rpm file into a cpio archive file
+rpm2cpio app.rpm | cpio -idmv
+
+=== Hands-On Lab: Installing and managing packages on Debian/Ubuntu ===
+sudo apt install apache2 wget
+sudo apt update
+sudo systemctl status apache2
+curl http://localhost
+wget --output-document=local_index.response http://localhost
+
+=== Hands-On Lab: Installing and managing packages on Red Hat/CentOS ===
+sudo yum install /home/cloud_user/Downloads/elinks-0.12-0.37.pre6.el7.0.1.x86_64.rpm
+which elinks
+elinks
+
+== Linux as a Virtualization Guest ==
+=== Virtualization and containers ===
+Virtual Machines are emulations of a specific computer system type
+Virtualization software will allow you to set up one OS within another
+Share physical hardware
+VM is isolated from hardware
+Communicates through a hypervisor
+Examples
+KVM, QEMU, VMWare, Xen, Virtualbox
+
+Full virtualization - guest system isn't aware it's a VM
+Paravirtualization - system is aware it's a VM, uses guest drivers
+
+VMs perform better
+VMs can be cloned or turned into templates to rapidly deploy new systems
+You may need to change system's D-Buss macine ID
+dbus-uuidgen -ensures data goes to correct location
+
+VM's provisioned from cloud providers
+cloud-init is typically used to ensure that user data is completely new
+new SSH keys
+sets the system's default locale
+sets the system's hostname
+Sets up mount points
+
+machine container shares a kernel and file system with the host computer
+
+Application Container shares everything but the application files and library files
+that the application needs
+
+Container examples,
+Docker
+nspawn
+LXD
+OpenShift
+
+Invented to allow sharing yet segragation of server instances
+Protect OS from each other
+Prervention of wasting CPU, memory, disk space
+Based on emulating virtual hardware through a hypervisor in terms of system
+requirements
+
+Use shared OS
+
+== Work on the Command Line ==
+=== Your bash shell environment ===
+BASH, Bourne Again SHell
+VARIABLE=path,command,alias
+BASH functions function yo() { echo "yo" }
+
+env displays environment variables
+echo
+
+set
+Displays shell settings or shell variables for the session
+
+unset
+removes a variable
+
+shopt
+displays shell options and their current settings
+
+export
+export a variable to the current shell and any new shells
+
+pwd, which
+
+type
+Used to determine if something is a function, file, alias, built-in or keyboard
+
+=== Bash history and the manual pages ===
+history, bash_history
+
+HISTFILESIZE
+environment variable that determines how many lines the .bash_history file will
+contain.
+
+!COMMANDNUM, !227
+
+man command
+
+Section 1, executable programs or shell commands
+section 2, system calls
+section 3, library calls
+section 4, special files
+section 5, file formats/conventions
+section 6, games
+section 7, misc.
+
+man -k search man pages for a specific key word
+
+apropos
+links to the man -k command
+
+man [section number]
+Open a particular section number for a specified command
+
+== Process Text Stream using Filters ==
+=== Basics of viewing text files ===
+cat, less, head, tail
+
+=== Text File statistics ===
+nl
+prints out the number of lines in a file
+
+wc
+word count
+
+od
+octal dump. Use to print out a file in octal or other format
+
+md5sum
+Calculates and checks a file's hash based on MD5 algorithm
+
+sha256sum
+Calculates and checks a file's hash based on the SHA-2 algorithm using 512 bits
+
+sha512sum
+Calculates and checks a file's hash based on the SHA-2 algorithm using 512 bits
+
+sha256sum file > file.sha256
+sha256sum -c test.sha256
+
+=== Text Manipulation ===
+sort
+command used to sort/or merge lines of a file
+
+uniq
+displays unique lines of a file
+
+tr
+Used to translate or swap characters in a file for another character
+
+sort -t "delimiter" -kCOLUMN
+sort -t "," -k 2
+Doesn't change the file itself
+
+uniq --group
+visualize the grouping in the file
+
+sort -u FILE
+only print unique values in files
+
+cat file.csv | tr 'TARGET_SWAP' 'ITEM TO SWAP WITH'
+cat file.csf | tr ',' ':'
+cat list.csf | tr -d ','
+
+Replace all uppercase with lowercase
+
+cat file.csv | tr 'A-Z' 'a-z'
+
+cut
+Extracts columns or fields of data from a file
+
+paste
+merges lines of files
+
+cut -d 'delimiter' -f 'column number,column number'
+cut -d',' -f 3
+
+cat file.csv | tr ',' '\t' | cut -f '2,3'
+\t = tab
+
+paste combines files in parallel by default
+paste file.csv file2.csv
+
+Specify delimiter
+paste -d ',' file.txt
+
+Helpful for flat files
+Or files that get passed off to another task
+
+=== More Text manipulation ===
+sed
+the stream editor command
+
+split
+command that is used to split a file up into individual pieces
+
+find/replace w/ sed
+
+-i in place sed
+sed -i's/find/replace/g' file
+
+sed 's/workstation/desktop/g' file.csv > list.csv
+^^ Creates a copy
+
+split -b 100 file.txt
+^^ bytes, works with kb, mb, gb
+
+File globbing
+to remove files at once
+rm xa*
+Didn't know that was the actual term name...
+
+split -d --verbose -nx file.txt
+^^ Use digits and make 'x' amount of files
+x00, x01 created
+
+Put file back together
+cat x0* > file.txt
+
+=== Hands-On Lab: Modify a text file using sed ===
+sed -i 's/cows/Ants/Ig' fable.txt
+Ignore case on input not output
+Ig, case insensitive and global
+
+== Perform Basic File Management ==
+=== Working with files ===
+ls, touch, cp, rm, mv
+
+file,
+Command used to try and determine a file's type.
+
+ls -d will not show sub-directories and cannot be used with -R
+
+=== Working with directories ===
+cd, mkdir
+
+rmdir,
+remove directory, will not delete a directory with any content
+
+$PATH,
+Environment variable that describes the directories that the current logged in user
+can run applications from without specifying their full path.
+
+=== File and Folder compression ===
+dd,
+Copies and converts files. Often used to create files and to back up disk drives
+Create an arbitrary file,
+dd if=/dev/urandom of=file bs=1024 count=10
+Creates a 10 MB file
+Check size of file with ls -lh
+
+tar,
+wraps up files and folders into an archive file. This command does not provide
+compression on it's own.
+Used to be used for backups
+Tape ARchives
+
+Create tarball
+tar -cf compressedFile.tar fileToCompress
+Create
+File
+
+View contents of tarball
+tar -tf compressedFile.tar
+
+Extract tarball
+tar -xf compressedFile.tar
+
+Switch for compression depends on switch,
+tar -czf compressedFile.tar.gz fileToCompress
+order matters
+
+Extract tar.gz,
+tar -xzf compressedFile.tar.gz
+
+Extract bz2 file,
+tar -xvjf file.tar.bz2
+
+gzip/gunzip,
+Create/Unzip .gz files
+
+bzip2/b2unzip
+Create/extract .bz2 compressed files
+
+xz/unxz
+Create/extract .xz compressed files
+Default redhat compression
+
+=== Finding files ===
+Find command only focus
+
+-name
+Find files based on their name
+
+-ctime
+Find files based on the time when they were last changed
+
+-atime
+Find files based on their access time
+
+-empty
+Find files or folders that are empty
+
+-exec [command] {} \;
+Will act on the results of the find command itself
+
+find . -name TARGET
+. current directory
+
+sudo find / -name passwd
+
+Handy, expensive on CPU/IO
+Other commands that use a localized database
+Rely on a database for information
+ex. locate
+
+find . -ctime 1
+^^ 1 day
+
+find /filepath/to/directory -newer FILE
+Look for files newer than stated file
+Can combine results
+
+find . -empty -type f -exec rm -f {} \;
+{}, act on everything returned
+\;, close out command
+
+find ~ -name "*.tar.*" -exec cp -v {} /path/to/directory \;
+
+=== File globbing ===
+globbing, global command
+
+*
+Matches 0 or more characters
+
+?
+Matches any single character
+
+[abc]
+Matches any one of the characters in the list, case sensitive
+
+[^abc]
+Matches any one character except those that are in the list, case sensitive
+
+[0-9]
+Matches a range of numbers
+
+=== Hands-On Lab: Creating a directory structure in Linux ===
+Create the 'Projects' Parent Directories
+Create the first parent directory structure with the mkdir command, and use the -p switch:
+
+mkdir -p Projects/ancient
+mkdir Projects/classical
+mkdir Projects/medieval
+or
+
+mkdir -p Projects/{ancient,classical,medieval}
+
+Create the 'Projects' Subdirectories
+Create the subdirectory structure:
+
+mkdir Projects/ancient/egyptian
+mkdir Projects/ancient/nubian
+mkdir Projects/classical/greek
+mkdir Projects/medieval/britain
+mkdir Projects/medieval/japan
+or
+
+mkdir Projects/ancient/{egyptian,nubian}
+mkdir Projects/classical/greek
+mkdir Projects/medieval/{britain,japan}
+
+Create 'Projects' Empty Files for Next Step
+Create the empty files for later use:
+
+touch Projects/ancient/nubian/further_research.txt
+touch Projects/classical/greek/further_research.txt
+
+Rename a 'Projects' Subdirectory
+The user would like for the classical directory to be renamed to greco-roman.
+
+mv Projects/classical Projects/greco-roman
+
+=== Hands-On Lab: Working with compressed files in Linux ===
+Try out different compression methods
+Take a look at the original size of your junk.txt file, and make note of it:
+
+ls -lh junk.txt
+First, let's try the gzip compression method. The following command will compress the junk.txt file using gzip:
+
+gzip junk.txt
+Now, run the 'ls' command to view the size of the file:
+
+ls -lh
+Notice that the gzip command replaced the original file with a compressed version of it. The other compression commands we will use will do the same. Take note of the smaller size of the file. Then, decompress the gzip file to get the original junk file back:
+
+gunzip junk.txt.gz
+Next, perform the same steps, using the bzip2 compression method:
+
+bzip2 junk.txt
+Note that this compression method will take slightly longer than the previous. Make a note of the bzip2 file's size (typically, these file sizes are smaller than gzip compressed files):
+
+ls -lh junk.txt.bz2
+Once again, decompress the file to get the original back:
+
+bunzip2 junk.txt.bz2
+Now we will try out a newer compression method, using 'xz':
+
+xz junk.txt
+Note that this compression will take some time as well. Once the command completes, view your file's size:
+
+ls -lh
+And finally, decompress the file:
+
+unxz junk.txt.xz
+
+Create tar files using the different compression methods.
+This next set of tasks will focus on working with tar files. First, use the gzip compression method to make a tarball:
+
+tar -cvzf gztar.tar.gz junk.txt
+Then, make a new tarball using bzip2:
+
+tar -cvjf bztar.tar.bz2 junk.txt
+Lastly, use xz to make a tarball:
+
+tar -cvJf xztar.tar.xz junk.txt
+Run the ls command again to compare the file sizes:
+
+ls -lh
+Notice that creating tar files did not replace the original junk.txt file. Note also how close in size the xz and bzip2 files are to each other.
+
+Practice reading compressed text files.
+The final group of tasks will demonstrate how to read compressed files, without decompressing them on your disk. First, copy over the /etc/passwd file to your home directory:
+
+cp /etc/passwd .
+Now, compress the file using bzip2 into a tarball:
+
+tar -cvjf passwd.tar.bz2 passwd
+Use the bzcat command to read the bzip2 compressed file:
+
+bzcat passwd.tar.bz2
+Do the same for a gzipped tar file:
+
+tar -cvzf passwd.tar.gz passwd
+And use the zcat command to read this compressed file:
+
+zcat passwd.tar.gz
+And finally, create an xz tar file:
+
+tar -cvjf passwd.tar.xz passwd
+And use the xzcat command to read its contents:
+
+xzcat passwd.tar.xz
+When done, hand the server over to be graded.
+
+== Use Streams, Pipes and Redirects ==
+=== Understanding standard input, output, and error ===
+Stdout, standard output > >>
+stdin, standard input < |
+wc < test.sh
+
+cat file | less
+
+Redirecting
+file.sh (stderr goes to screen)
+file.sh 2> error.log (stderr gets redirected to error log)
+file.sh 2>&1 | less (stderr and stdout gets sent as stdin to less)
+
+=== Redirecting Output to the screen and a file ===
+tee,
+Reads data from stdin and writes that data to stdout and files
+Command is useful for chaining together long commands and viewing output
+at various stages. Pipe to file and view output
+
+ls -d /usr/share/doc/lib[xX]* | tee file.txt
+COMMAND | tee FILE
+Redirect output to multiple locations
+
+xargs,
+Accepts input from stdin and other commands
+Commonly used with the find command can be used with other commands
+
+find directory -empty
+find directory -empty | xargs rm -f
+faster than exec option
+
+grep -l "junk" test/file_* | xargs -I {} mv {} test/bak/
+No need for \;
+
+find ~ -name "*.sh" | xargs ls -al > scripts.txt
+
+== Create, Monitor, and kill processes ==
+=== Reviewing the state of your system ===
+ps, top
+
+man proc,
+man page for /proc pseudo file system directory
+
+man signal,
+manpages for the various signal states of processes
+
+PID, Process ID
+1, init/systemd
+Indented lines, child processes
+
+ps -u USERNAME
+Find processes spawned by user
+
+ps -e
+List all processes from all users
+
+top
+k PID
+Kill's PID
+
+=== Monitoring processes ===
+free, uptime, kill, pkill
+
+pgrep,
+Find process information based on process name
+
+pgrep process/PID
+Only returns PID by default
+
+pgrep -a PROCESS
+Returns more information
+
+pgrep -u USER
+List all processes by user
+
+sigkill 9, kill
+sigterm 15, terminate nicely
+Be aware of stale PID files
+
+sighup 1, hangup
+
+Prepend kill command with sudo command
+sudo kill PID
+
+pkill -x process
+Only kill processes that match name
+
+=== Keep a process running ===
+killall
+kills all process based on a named provided as an argument
+
+watch, screen
+
+tmux
+modern terminal window manager with extra features
+
+screen
+watch -n TIME COMMAND
+detach, ctrl+a d
+re-attach screen -r
+
+screen -r screenID
+
+tmux detach,
+ctrl+b d
+
+tmux ls,
+shows running sessions
+
+tmux attach-session -t sessionID
+
+nohup,
+command preceded by nohup receives signal 1, sends to background
+
+bg,
+sends a job to the background while it keeps running
+
+&
+When applied to the end of a command, the command is sent to the background
+
+fg,
+Brings a job that is in the background to the foreground
+
+jobs,
+Displays a listing of jobs that are in the background
+
+== Modify Process Execution Priorities ==
+=== Understanding and changing process priorities ===
+nice, used to define a new nice level before an application is started
+renice, used to change the nice level of an application that is already running
+
+All processes need to use CPU time
+-20 highest priority
+19 lowest priority
+0 is the default for most processes
+
+Only sudo/root can lower nice level
+Anyone can raise the nice level
+
+ps -o pid,nice,cmd,user
+default shows username
+
+Start with higher nice level
+nice -n 5 COMMAND
+
+renice -n LEVEL PID
+^^ If you lower you need sudo/root
+
+Renice in top
+r
+Provide pid
+Provide new level
+
+== Search Text Files using regular Expressions ==
+=== Introduction to regular expressions ===
+Similar to file globbing.
+Common regex
+. represents a single character
+^ Search the beginning of a line
+$ Search the end of a line
+[abc] Search for specified characters
+[^abc] Search for characters besides these
+* match zero or more of the preceding characters or expression
+man7 regex, man pages for regex
+
+grep g.m FILE
+. stands in for any character
+
+grep ^rpc FILE
+What lines start with rpc?
+
+grep EXPRESSION$ FILE
+Show lines that end with EXPRESSION$
+
+grep ^[Aa].[Aa] FILE
+Look for lines that start with Aa anycharacter and Aa
+
+grep ^[Aa].[Aa][^h]
+Lines with
+
+grep var*
+Show lines that match 0 or more of the characters preceeding the wildcard
+
+=== Using regular Expression tools ===
+sed can operate on files using regex
+
+egrep searchs a specified file line by line returning lines that contain a pattern
+matching a given regex
+equivalent to 'grep -E'
+
+egrep 'EXPRESSION' FILE
+
+egrep -c 'bash$' /etc/passwd
+Count
+
+egrep '^rpc|nologin$' FILE
+Look for lines that start with rpc or end with nologin
+
+fgrep
+Searches based on strings rather than pattenrs
+equivalent to 'grep -F'
+
+fgrep -f STRINGS FILE
+Uses strings in a file to look for
+
+fgrep -f STRINGS FILE*
+
+Per man pages:
+-E, --extended-regexp
+      Interpret PATTERNS as extended regular expressions (EREs, see below).
+
+-F, --fixed-strings
+      Interpret PATTERNS as fixed strings, not regular expressions.
+
+=== Hands-On Lab: Working with basic regular expressions ===
+Working with Basic Regular Expressions
+Introduction
+Hello there. We've got a few simple tasks we need to perform, just to get the hang of regular expressions. We'll be reading some text files and redirecting some output (output that we'll decide on using regular expressions) to other text files.
+
+Locate HTTP Services
+We want to read all of the lines in /etc/services that start with http (but not any that start with httpx) and send them to ~/http-services.txt.
+
+This will get it done for us:
+
+grep ^http[^x] /etc/services > ~/http-services.txt
+To check if we have what we want in the new file, run:
+
+cat ~/http-services.txt
+Locate LDAP Services
+This one is a little trickier. We want to find all of the lines in /etc/services that start with ldap. The fifth character can be any alphanumeric character, but the sixth character can not be an a. We'll dump the output into ~/lpic1-ldap.txt.
+
+grep ^ldap.[^a] /etc/services > ~/lpic1-ldap.txt
+To check if we have what we want in the new file, run:
+
+cat ~/lpic1-ldap.txt
+Refine the HTTP Results
+We want to read the ~/http-services.txt file that we created earlier, and just look at lines that don't end with the word service. This grep command will do it:
+
+grep -v service$ ~/http-services.txt > ~/http-updated.txt
+To check if we have what we want in the new file, run:
+
+cat ~/http-updated.txt
+
+== Perform basic File editing operations in vi ==
+=== Using the Vi/Vim Text editor ===
+vimtutor vim tutorial
+Honestly we all know how to use Vim...
+
+=== Hands-On Lab: Creating and Modifying a File with Vim ===
+Introduction
+Welcome to Vim, and a lab where we'll walk through some basics of using it. We're going to create a text file with Vim, and edit it.
+
+Create a New File
+We're going to create a new file called notes.txt in /home/cloud_user.
+
+cd
+vim notes.txt
+Now, to add the text Beginning of Notes File, we need to get into insert mode, by pressing i. We can start typing now once we're in insert mode.
+
+Leave two blank lines after Beginning of Notes File. Now, to save the file and quit Vim, we have to first hit Esc (to get out of insert mode), type :wq! (write and quit).
+
+Send Data to notes.txt
+Using the cat command and output redirection, send the contents of the /etc/redhat-release file to the end of the notes.txt file, taking care to append the contents so as to not overwrite the file (using >>, not >)
+
+Run this to append notes.txt with the contents of /etc/redhat-release:
+
+cat /etc/redhat-release >> notes.txt
+Modify notes.txt
+Let's open notes.txt again for editing. We'll place the cursor before the opening parenthesis around the word Core and use a keyboard shortcut to delete the text from there to the end of the line. We'll leave two more blank lines at the end of the file and then save and quit again.
+
+Here are all of the steps to do that:
+
+Open the file:
+vim notes.txt
+Use the arrow keys to move to the beginning parentheses before Core
+Remove text from the cursor's position to end of line:
+SHIFT D (or d$)
+Create a blank line under where the cursor is
+o
+Hit Enter to create the second blank line
+Hit Esc to leave insert mode
+Hitting o added a blank line, but also put us in insert mode
+Write and quit:
+:wq!
+Send More Data to the File, and Modify Its Contents
+Now we're going to send free -m output to the end of notes.txt, edit notes.txt again, delete the last line of the file, and add two more blank lines to the end of the file.
+
+Then, we're going to jump to the third line of the file, enter some text, and make another blank line afterward.
+
+Here are all of the steps to do that:
+
+Append the notes.txt:
+free -m >> notes.txt
+Edit notes.txt:
+vim notes.txt
+Navigate to the Swap line with arrow keys.
+Delete the line:
+dd
+Create a blank line under where the cursor is (and put us in insert mode):
+o
+Hit Enter to create the second blank line.
+Hit Esc to get out of insert mode.
+Get to the 3rd line of file:
+:3
+Get back into insert mode:
+i
+Type This is a practice system.
+Hit Enter to make another blank line.
+Hit Esc to leave insert mode.
+Write and quit:
+:wq!
+Finalize the Notes File
+We're going to dump one last bit of text into the file, then edit it again. We'll take the output from dbus-uuidgen --get, append it to notes.txt then edit notes.txt so that the text Dbus ID = is in the beginning of the new appended line.
+
+We'll do it like this:
+
+Append the notes.txt:
+dbus-uuidgen --get >> notes.txt
+Edit notes.txt:
+vim notes.txt
+Get right to the end of the file:
+G (Capital G)
+Get into insert mode:
+i
+Type "Dbus ID = " (with a space between the equals sign and the dbus-uuidgen --get command's output). Only type the text within the quotation marks.
+Write and quit:
+:wq!
+
+== Create partitions and filesystems ==
+=== Legacy MBR Partitions ===
+lsblk, command used to list out block devices (such as hard drives)
+fdisk, legacy command used to create partitions of the MBR (DOS) type
+parted, modern command used to create partitions of MBR or GPT types
+
+Partition ID's:
+83 - standard Linux filesystems
+82 - Linux swap partitions
+8e - Linux LVM Volumes
+
+Old school method
+fdisk /dev/sda
+m, help command
+
+n, create new partition table
+p, primary
+e, extended
+LPIC doesn't cover hard disk geometry, use default
+Press enter at the prompt
+Indicate size in kb/mb/gb
+Use default
+w write partition to disk
+
+Need to create file system and mount it
+
+fdisk -l, list out partitions.
+
+Create partitions w/ parted tool
+parted /dev/vdb
+help, show commands
+
+mklabel msdos
+for MBR method
+mkpart
+primary/extended? primary
+First and only partition
+By default uses ext2
+
+parted doesn't go by cylinders, but by Megabytes
+Input 1 signify the start
+Input 1000 to signify the end (approx 1 GB)
+p to view table
+
+=== GPT Partitions ===
+
+gdisk, command in style of fdisk, used to create GPT partitions on disk
+parted, can be used to create both MBR and GPT disk partitions
+
+When dealing with GPT use the parted/gdisk command
+Use default partition number
+Start at first sector
+Accept default first sector
+Specify a size for partition, +500M
+Defaults to 83/8300 file systems
+Typically followed by two zeroes
+p, view partition table
+
+Not written to disk, write with w key
+Asks if you wish to complete, enter Y press enter
+
+parted /dev/DEVICE
+mklabel gpt
+mkpart
+Partiion name? optional
+File system type? Use default ext2
+Start? 1M
+End? 500M
+p, view partition table
+
+lsblk to view tables
+
+=== Swap Partitions ===
+fdisk, gdisk, parted
+Any of these tools can be used to create swap partitions
+
+mkswap, used to format a partition to be used as swap space
+
+swapon, enable swap partition
+swapoff, disables a swap partition
+
+Create new partition and make swap partition
+start with lsblk
+
+use gdisk
+gdisk /dev/DEVICE
+p, view partitions
+n, new partition
+Defaults to 2, detects existing partition. Use default 2
+First sector, default
+Last sector, default
+
+Defaults to 8300, L to show codes
+8200 for SWAP
+
+Write to disk, w
+COnfirm w/ y
+lsblk to confirm layout
+
+mkswap -L SWAP /dev/DEVICE_PARTITION
+-L, makes label
+Pay attention to UUID, Label
+
+swapon -a
+-a, Anything marked as swap in /etc/fstab
+Skips already on swap
+Newly created SWAP doesn't exist in fstab yet
+
+swapon -U UUID
+swapon -L SWAP
+
+free -m, check for new swap
+Will not persist after reboot
+
+vim /etc/fstab
+File System TABle
+
+New entry
+/dev/DEVICE_PARTITION
+^^ Valid and will work, not exactly best practice
+Kernel potentially will mount disk wrong
+
+Use UUID/LABEL
+LABEL=SWAP swap swap defaults 0 0
+0 dumping
+1 turns it on
+Don't want to back it up
+
+Last column, filesystem checking
+Checks filesystem to see if all info is intact
+Nothing to protect/backup
+Save/close file
+
+New swap should be in place after reboot
+Don't actually have to reboot to check
+Turn off swap
+swapoff -L SWAP
+confirm with free command
+swapon -a
+^^ Re-reads fstab
+Confirm with free
+
+=== Creating Linux File Systems ===
+Linux files systems are in two categories
+Journaling/non-Journaling
+Non-Journaling: ext2 - legacy file system released in 1993
+Journaling: Uses a journal to keep track of changes that have not been written yet
+ext3, introduced journaling
+ext4, added features such as SSD support
+XFS, created for the IRIX OS. Default for CentOS 7/RHEL
+
+Btrfs
+Rather than taking a file and sending to disk, uses Copy on Write (CoW)
+If you modify the file original file is copied and data is written in file
+Only changes are recorded
+Helpful to roll back to a previous version of a file
+Uses subvolumes
+Similar to partitions
+Accessed like a directory
+Still in active development
+
+LPIC only wants you to be aware of it
+Provides snapshots
+Subvolume that refereneses the original data's location
+Snapshot a 500GB volume in just a few seconds
+
+FAT file systems
+File Allocation Table
+Linux can use vFAT which allows for longer file names
+EFI boot partitions need to use a FAT partition
+On linux this will be a vfat partition
+
+Newer FAT file, exFAT - Extended FAT file system
+allows files over 2 GB
+Primarily used for external drives, usb drives etc.
+Not enabled by default
+Need to install a driver to use exFAT
+
+mkfs, creates a new file system on a partition
+mkfs -t [fs-type]
+mkfs.[fstype]
+
+mkfs.ext4 -L LABEL /dev/DEVICE_PARTITION
+confirm w/ lsblk -f
+
+blkid
+Displays the file systems Universally Unique IDentifier (UUID)
+
+blkid /dev/DEVICE_PARTITION
+Shows Label, UUID, Type
+
+mkfs.xfs -L OPT /dev/DEVICE_PARTITION
+xfs different output
+It's set of built in tools
+
+== Maintain the integrity of filesystems ==
+=== Disk Space Usage ===
+df shows available disk space on a file system
+du shows disk space in use
+df -h
+du -sh
+
+inode, INdex NOde stores information about files and folders such as
+permissions, ownership and file type
+Most file systems contain a maximum number of inodes it can contain.
+
+Display inode info:
+ls -i
+df -i
+du --inodes, shows how many inodes are in use by each directory
+
+tmpfs file systems are temporary and won't persist after server reboots
+
+du -h --max-depth=2
+Only want to see how much space is used within the first two directories
+
+=== Maintaining a Filesystem ===
+fsck, file system check utility. Can be invoked via command line and configured in
+fstab. Devices must be unmounted before a check can run.
+
+e3fsck, file system utility ch3eck for ext2/3/4 file systems. Can replay system's
+journal.
+
+mke2fs, Utility for creating new ext2/3/4 file systems
+
+tune2fs, Utility to adjust parameters on an ext2/3/4 file system.
+
+umount /dev
+fsck -r LABEL=LABEL
+
+Second number column in /etc/fstab (0 0) shows order partition is checked
+root / should be 1
+
+e2fsck /dev/DEVICE_PARTITION
+If it comes back clean even though you've had issues re-run check with -f
+e2fsck -f /dev/DEVICE_PARTITION
+
+create a brand new file system on a new partition
+new partition
+configuration file mke2fs conf file /etc/mke2fs.conf
+
+mke2fs -t ext4 -L LABEL /dev/DEVICE_PARTITION
+
+tune2fs -i 3w /DEV/DEVICE_PARTITION
+Next check after will show when file system check will be run
+Directory that gets created, lost + found
+
+mount /dev/DEVICE_PARTITION /PATH/TO/DESTINATION
+If a filecheck locates damaged data it will be moved to lost+found
+
+xfs_repair, Utility to repair XFS file systems
+xfs_fst, reorganizes data stored in blocks on an XFS file system. Similar to
+Windows disk defrag. Needs to be mounted.
+
+xfs_fsr /path/to/defrag
+
+xfs_db, used to debug an XFS file system
+Unmount filesystem
+Interactive command
+frag, check on fragmentation
+
+== Control Mounting and unmounting of file systems ==
+=== Understanding Mount Points ===
+/opt local filesystem
+Need more space for file directory
+/dev/sdb1
+Mount to /opt directory
+Each directory is a docking port
+Data saved to /dev/DEVICE stays on drive
+If you need database to be consistently available you'll need to create an
+/etc/fstab
+LABEL=opt /opt ext4 defaults 1 2
+^^ Example fstab option
+
+=== Mount and unmount filesystems ===
+Mount command and detect type of file system
+Filesystem Independent Mount Options
+async, data will be written asynchronsly
+ro, mount as read only
+
+LABEL=OPT /opt rw,exec,suid,auto 1 2
+
+mount /root/install.iso -t TYPE -o ro,loop /media
+loop for files
+
+=== Hands-On Lab: Adding a new hard disk to a Linux system ===
+Create a New Partition
+Run the lsblk command to verify that you have a /dev/nvme1n1 device available.
+Once confirmed, create a partition on the /dev/nvme1n1 disk using fdisk
+(note you will need to run sudo for these commands) that uses the entire disk:
+
+lsblk
+sudo fdisk /dev/nvme1n1
+
+Create the File System
+Create a new XFS file system on this partition with the mkfs.xfs command.
+Once that is complete, run the blkid command on the newly created partition to
+obtain the UUID. Make a note of this UUID:
+
+sudo mkfs.xfs /dev/nvme1n1p1
+sudo blkid /dev/nvme1n1p1
+Mount the new File System and Make it Permanent
+Edit the /etc/fstab file and create a new entry at the bottom for your new disk.
+The format should follow the following (be sure to use your disk's UUID from
+the previous step):
+
+UUID=YOURUUID /opt xfs defaults 0 0
+
+Save and close the file, then run the sudo mount -a command to mount new partition.
+A df -h /opt command should show you roughly 5GB available for the /opt directory.
+
+== Manage File Permissions and Ownerships ==
+=== Basic File and Folder Permissions ===
+chmod basics
+symbolic
+r read w write x execute - no permission
+4 read 2 write 1 execute 0 no permission
+6 = rw-, etc.
+Owner,Group,World permissions
+
+I'm admittedly kinda sloppy here since anyone reading this should know this...
+
+=== Modify Basic Access Modes ===
+chown, change ownership
+chmod, change permissions
+chgrp, change group ownership
+
+chown :group file
+chgrp group file
+
+Only root can change ownership
+
+=== Modifying Advanced Permissions ===
+SUID
+set user id bit. Files with an 's' in the place of the 'x' permission within the
+user's column have this set. Note that this will not work on BASH scripts anymore.
+Many file systems can be mounted with the 'nosuid' option.
+
+SGID
+Set group id bit. Files and folders with the s in the place of the 'x' permissions
+within the groups column hve this set. This assigns group ownership to files
+Useful for shared group directories
+
+Sticky Bit
+Permission has a 't' in place of an 'x' in the other's column. This permission
+only allows the creator of a file to remove the file.
+
+Apply group id
+chmod -R 2770 /directory
+check perms w/ ls -ld /directory
+chgrp folder
+
+
+sticky bit is useful for temp directory
+t is added to end
+chmod 1777 /directory
+confirm with ls -l FILE
+
+=== Default File and Folder Permissions ===
+umask, show current umask settings
+Can also be used to set a new umask value for the current shell session.
+
+Default permissions
+777 directories
+666 files
+
+umask value
+Subtract the umask value from the default permission to get the current permission
+value.
+
+expr 777 - 002
+expr 666 - 002
+
+Permanent Configuration
+/etc/bashrc = umask set for whole system
+/home/[user]/.bashrc = umask set for user
+
+=== Hands-On Lab: Managing File attributes and permissions ===
+Reset Permissions on /opt/myapp Directory
+In order to allow access to the /opt/myapp directory, the student will need to
+provide specific permissions to the directory itself so it can be read by users
+other than the owner.
+
+Accomplish this task with:
+
+sudo chmod 755 /opt/myapp
+Optionally, although less secure, the following would meet the requirements as
+well:
+
+sudo chmod 777 /opt/myapp
+check_circle
+Permissions on Files and Folders Within /opt/myapp
+The student is asked to allow read and write permissions to all files and
+folders within the /opt/myapp directory
+(including files within the subfolders recursively).
+
+This task can be completed successfully via:
+
+sudo chmod 666 -R /opt/myapp/*
+Note: For users to be able to navigate into directories,
+the directories must be set as executable. You can do this with:
+
+sudo find /opt/myapp -type d -exec chmod o+x {} \;
+
+== Create and change Hard and Soft Links ==
+=== Understanding Links ===
+ln creates a hard link to a file
+This type of link will only work on the file system of the originating file
+
+ln -s creates a symbolic soft link to a file or directory. Links of this type can
+traverse file systems.
+
+unlink removes a link from a file/folder. Not covered on LPIC-1
+
+=== Hands-On Lab: Working with Links in Linux ===
+Create a Symbolic (soft) Link
+Using the ln command, create a symbolic link from the file /etc/redhat-release
+to a new link file named release in the cloud_user's home directory.
+Using the ls command, verify that the link is valid.
+Use the cat command on the /home/cloud_user/release file to verify its contents.
+
+Can be completed with:
+
+ln -s /etc/redhat-release release
+ls -l
+cat /etc/redhat-release
+Check the Inode Numbers for the Link
+Using the ls command, first look at the inode number for the
+/home/cloud_user/release link and then check the inode number for
+/etc/redhat-release.
+They should be different, as the symbolic link is just a new file system entry
+that references the original file.
+
+Viewing the inodes can be done via:
+
+ls -i release
+ls -i /etc/redhat-release
+Create a Hard Link
+Create a directory called docs in your home directory.
+Copy the /etc/services file into this new docs directory.
+Using the ln command again, create a hard link from
+/home/cloud_user/docs/services to a link file named /home/cloud_user/services.
+Use the ls command to verify the link's inode number,
+and the inode number for the original /etc/services file.
+
+The commands to accomplish this task are:
+
+mkdir docs
+cp /etc/services docs/
+ln docs/services services
+ls -l
+ls -i services
+ls -i docs/services
+Attempt to Create a Hard Link Across File Systems
+Using the ln command, attempt to make a hard link from
+/home/cloud_user/docs/services to /opt/services
+(you will have write permissions to this location). Why does this not work?
+
+To see the behavior of this task, try the following:
+
+lsblk
+ln docs/services /opt/services
+Attempt to Create a Symbolic Link Across File Systems
+Once more using the ln command, attempt to create a soft link from
+/etc/redhat-release to /opt/release.
+Why does this work, but creating a hard link fails?
+Turn the system over for grading when complete.
+
+Creating the soft link should succeed, even across filesystems, like so:
+
+sudo ln -s /etc/redhat-release /opt/release
+ls -i /etc/redhat-release
+ls -i /opt/release
+
+== Find System Files and place files in the correct location ==
+=== File system hierarchy standard ===
+Where computer data is stored ona a storage device
+Organized and eaily located
+Data saved in a persistent manner
+Data integrity preserved
+Data can be quickly retrieved for a user in a later point in time
+
+Filesystem Hierarchy Standard (FHS)
+Directory structure:
+Inverted tree with a single root
+Case sensitive
+Paths are delimited by a forward slash /
+Any folder/file preceded by a . are hidden
+A single . in a directory refers to the current directory
+A double dot refers to the parent directory
+
+=== Finding commands on a linux system ===
+locate, command that searches a local database of files and folder looking for
+items that match the search criteria
+
+updatedb, updates the database the locate command uses
+
+whereis, This command locates binary, source and/or manual pages for a command

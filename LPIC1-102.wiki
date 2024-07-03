@@ -1,0 +1,963 @@
+[[index|back]]
+
+= LPIC1-102 =
+== Customize and use the shell environment ==
+=== Setting Up the Shell Environment ===
+Two main types of shell environments
+Interactive Login Shell
+log into a console
+log in via SSH Interactive non-login shell
+Local terminal
+
+Interactive login shell
+First thing after logging in
+/etc/profile gets read
+Calls /etc/profile.d/*
+Calls .bash_profile/.profile
+Calls .bashrc
+Calls /etc/bashrc
+Console shows
+
+Interactive non-login shell
+Calls .bashrc
+Calls /etc/bashrc
+
+How can you tell which one you're in?
+echo $0
+Shows name of process currently running
+-bash
+dash indicates a login shell
+
+No dash in non-login shell
+
+/etc/profile
+First file read
+Sets up system-wide environment variables, umask, history controls etc.
+Modifications should be made in profile.d/
+
+/etc/profile.d/
+Contains extra configurations for bash
+
+/etc/bashrc
+Configure system-wide functions and aliases here
+
+/etc/skel
+Contains the default .bash_profile, .bashrc and other files added to a user's
+home directory. Added to new user home folders
+bash_logout
+Empty by default
+can add logout messages or commands to force an application to quit
+
+home .bashrc will call system level bashrc
+
+.bash_login, old bash_profile. Largely replaced
+Legacy file
+
+=== Customizing the Shell Environment ===
+Bash Customization Commands
+env
+View environment variables for the current shell
+All enviromental variables listed
+
+export
+Command used to allow child shell session to use an environment variable
+
+set
+By itself displays all Bash shell settings
+Can also be used to enable/disable BASH settings
+
+set -f, disable file globbing
+set +f, enable file globbing
+
+unset
+Remove an environment variable
+
+unset VARABLE, do not use $
+
+alias
+Used to create a shortcut to longer command
+
+function
+Customer command any user can use in a shell
+
+function FUNCTION() {
+> ENTER FUNCTION COMMANDS
+}
+
+Make function permanent
+Add to .bashrc
+function FUNCTION() {
+  FUNCTION
+}
+
+. (dot)
+Command used to source or apply function from a file into the current BASH session
+or shell script
+
+source
+same as .
+I typically do 'source .zshrc' to pull in new zsh settings
+
+PATH
+location paths separated by ':'
+create bin directory in home folder
+Move scripts there
+Can run them directly from there
+
+Add to PATH
+export PATH=$PATH:/filepath/to/add
+^^ Be careful or you'll overwrite PATH
+
+echo $PATH
+confirm new path added
+
+Make it permanent in .bash_profile
+PATH=$PATH:/FILEPATH/TO/ADD
+Can use $HOME
+
+=== Hands-On Lab: Modifying the BASH Shell ===
+Create the alias.
+The first step is to create an alias for the Bash shell that will allow you to
+view the service status of the web server itself. You will name this alias webstat.
+When you type the command webstat at the prompt, you will see the output of the
+command systemctl status httpd.service.
+
+User-created aliases and functions should go in your local ~/.bashrc file.
+Using the commands listed, append the following alias to your ~/.bashrc file:
+
+echo 'alias webstat="systemctl status httpd.service"' >> /home/cloud_user/.bashrc
+
+Load and test the alias.
+Now that we have created an alias that displays the status of the web server, we
+need to tell Bash that we want to use it in our current session. First, we need
+to source our .bashrc file using the “dot” (.) command:
+
+. ~/.bashrc
+Now that the Bash environment has been refreshed with the new alias from
+our ~/.bashrc file, we can use our new alias:
+
+webstat
+We should be able to see the output of our service's status command.
+
+Create your function.
+The next step is to create a function that will take the name of a directory as a
+parameter and print out how much disk space that directory is using.
+
+Using the vi text editor, open up the ~/.bashrc file and add the following
+function to the bottom, beneath the alias that you created earlier:
+
+function webspace()
+{
+    du -h /var/www/html/$1;
+}
+Save and close your file. Then source the .bashrc file again:
+
+. .bashrc
+
+Use the `webspace` function.
+Since the /var/www/html directory is the root location for all of the individual
+site locations for this web server, all you need to do is provide the name of the
+folder that contains a particular part of the site to the webspace function.
+To view the size and contents of the main public web page, enter this command:
+
+webspace main
+This will print out the contents of the /var/www/html/main directory and how much
+disk space this directory uses. The $1 used in your function is a positional
+argument. When you type webspace main at the prompt, the word main is replaced by
+the $1 argument, thus providing the output of the command for the
+/var/www/html/main directory.
+
+Try the same command again, this time for the customer directory on the web server:
+
+webspace customer
+You should see more directories in the output, plus a 5 MB client binary file.
+
+== Customize or write simple scripts ==
+=== Basic Shell Scripts ===
+Reduce repetitive work
+old saying: If you have to type it more than once put it in a script
+Useful for automated tasks
+task with no input
+
+#! shebang
+^^ #!/usr/bin/bash, #!/usr/bin/python
+Don't need file extension if you use shebang
+I personally use the shebang + the extension to be thorough
+
+#, comment
+
+Scripts need execute permissiosn
+
+Parameters
+
+Positiional arguments/parameters
+script option1 option2
+$1 = option1
+$2 = option2
+
+=== Adding Logic to you shell scripts ===
+if Statements
+if, else, elseif, fi
+test command is used to test for various conditions
+|| OR
+&& AND
+!= Not equal
+
+test command can be used for simpler statements
+Remember that you'll need double brackets for OR statements
+Alternatively
+[ CONDITIONAL ] || [ CONDITIONAL ]
+
+Be aware of logical errors
+
+Testing integers
+-eq equlity between two numbers, is the same
+-ne inequality between two numbers, is not the same
+-gt If one number is higher than another
+-lt If one number is lower than another
+-ge If one number greater than or equal to another
+-le If one number less than or equal to another
+
+Return last value
+$?
+
+Returns 0 in most cases, generally greater than 0 is a failure
+
+Can check for output
+if [ $? -gt 0 ]; then
+
+=== Bash Loops and sequences ===
+for, loop over a fixed number of times
+while, loop until a condition is false
+until, loops and stops when condition true
+
+sequence
+seq x, increment from 1 -> x by 1
+
+seq x y, increment from x -> y by 1
+
+seq x y z, increment from x -> z by y
+
+until [ $var -t 1 ]
+do
+	LOOP STUFF
+	$var=var-1
+done
+
+read, takes input from user
+exit, returns 0 by default.
+
+Can specify a different exit code
+exit VALUE
+confirm echo $?
+
+exec,
+redirect output into another file/process without sending to current shell
+
+exec > out.log
+ls
+pwd
+cat out.log
+
+== Install and configure X11 ==
+=== The basics of X11 ===
+Provides graphical rendering for UNIX-like operating systems
+Core display serer that provides protocol service for X window system
+Extension:
+RandR, dynamic resizing of the root window, refresh rates, mirroring displays
+GLX, provides rendering of 3d opengl conten within windows
+Xinerama: provides the ability to split the desktop across multiple monitors
+
+Basic building blocks
+Graphics care -> Linux Kernel and Graphics Driver -> libDRM -> Xserver -> Xlib/XCB
+-> Display Manager -> Application
+X-server -> /etc/X11/xorg.conf, /etc/X11/xorg.conf.d
+
+Good to practice with older EOL distro
+X is different now
+Will need to know how to work on newer/older versions of X11
+
+Wayland
+Meant to replace X Window System
+Simpler rendering protocol
+Xwayland, enables X window client to render with Wayland for backwards compatability
+
+=== Installing X11 ===
+Example uses EOL CentOS 5
+yum grouplist
+yum groupinstall "X Window System" -y
+telinit to change runlevel (older)
+Need to be in runlevel 5
+Never use X session as root user
+
+By default uses gdm/twm
+
+Window Manager provides look/feel of desktop
+Start window manager without going through gdm
+
+Go to runlevel 4, telinit4
+startx, starts window manager for you
+Not secure, running window manager while logged in as root user
+Bypass password prompt
+startx, works as your user too
+Security risk
+
+Older system
+cat /etc/inittab
+Bottom of file
+x:5:respawn:/etc/X11/prefdm -nodaemon
+
+Available display managers listed
+echo $DISPLAY
+:0.0
+First 0 which X server
+On remote machines it's assigned the number 1
+. separates which X server from which screen
+Different numbers for different screens
+
+=== X11 Configurations ===
+/etc/X11/xorg.conf
+Primary configuration file used for the X Display Server.
+use man xorg.conf for a full listing of all options
+
+X (Xorg)
+Used to create a new configuration file for your X server
+
+xdpyinfo
+Displays information about the current X session and X server instance.
+
+/etc/X11/xorg.conf.d/
+Directotry that contains supplementary Xorg configuration files
+
+Input device lists options for Keyboard type and layout
+
+Device is for GPU
+
+Screen is for GPU/Monitor
+
+Some systems create a symbolic link between X -> Xorg command
+runlevel 3 is good to use, X prefers to not have a running server
+
+Back up existing conf file
+X -configure
+
+X -config /root/xorg.conf.new to test new config
+To quit use control + alt + backspace
+Copy new config file to /etc/X11/xorg.conf
+Jump to runlevel 5
+
+xdpyinfo | less to review output
+name of display, as well as version
+enabled extensions
+number of screens + Default screen
+Screen dimensions
+
+Virtualbox doesn't work well with custom X server options
+Modes option under SubSection "Display" can be used to increase resolution
+Put higher resolutions before lower resolution, to fall back
+Make change to 16/24 bit color depths
+
+In order for changes to take effect reboot system
+
+Modern Linux distros usually don't use a centralized conf file
+^^ I don't even think Slackware does
+
+Newer distros use xorg.conf.d
+Begin with two digits
+00, 09, 10 etc.
+Loaded in order
+
+ls /usr/share/X11/xorg.conf.d
+Other conf files
+Modern X11 is better at detecting what's plugged in and configured
+
+=== Remote Graphical Connections ===
+Ability to allow remote displays
+
+xhost
+Older and insecure method of allowing client systems theability to display
+remote X11 windows
+
+Remote display connections disabled by default
+xhost +, enable
+xhost -, disable
+
+ip addr show
+inet IP
+
+xhost + IP
+
+ssh -Y USER@IP, forward X11 request
+Set up display environment
+export DISPLAY"127.0.0.1:10.0"
+Tell system to display windows on localhost
+Using ssh daemon on remote system use 10.0
+Confirm with xclock/xeyes
+
+xauth
+Allows a user to edit and view security information that grants a user the ability
+to control remote X11 client windows
+
+xauth list
+Shows what sessions are running currently
+
+VNC
+Virtual Network Computing enables a remote computer to control the graphical display
+of a remote system. Insecure by default
+
+Tiger VNC server
+yum -y install tigervnc-server
+copy over unit file
+cp /usr/systemd/vncserver@.server /etc/systemd/system/vncserver@:1.service
+Assign it it's own unique number
+Configure service to work with account
+Edit copied file
+Scroll to bottom
+:%s/<USER>/user/g
+Edited systemd file, reload daemon
+systemd daemon-reload
+Set VNC password for local user
+vncpasswd command
+^^ Service will fail otherwise
+has to be at least 6 characters long
+Use modified unit name when starting service
+Enable service
+Two ways to connect
+
+Insecure
+port 5900
+ss -tlpn | grep vnc
+Shows vnc listening on port 5901
+Need to open port 5901 in firewall
+firewall-cmd --permanent --ad-port=5901/tcp
+firewall-cmd --reload
+
+Go to desktop, use remote connection software vinegar
+Protocol VNC
+Host IP:PORT
+Connect, enter VNC password
+All network traffic is not encrypted
+Session can be hijacked
+Re-do but with encrypted SSH tunnel
+
+Secure
+Close VNC port on remote
+firewall-cmd --permanent --remove-port=5901/tcp
+firewall-cmd --reload
+
+On client
+ssh -C -L 5901:localhost:5901 IP
+Redirect from 5901:localhost to IP:5901
+Once that's running to VNC app
+
+Protocol VNC
+Host localhost:5901
+Enter VNC password
+
+
+SPICE
+TLS encrypted remote desktop protocol (RDP) that can be used in Linux, Windows and
+Android systems.
+
+Protocol SPICE
+
+Two way audio
+Can also use USB on remote system
+
+== Graphical Desktops ==
+=== The primary Linux Desktop Environments ===
+Collection of software
+GTK+ Based desktops, GIMP Tool Kit
+Written in 'C' language library. Notable
+GNOME, XFCE, LXDE
+
+QT based desktop
+Qt is a 'C++' language library
+Desktops that use this library
+KDE, LXQT
+
+== Accessibility ==
+=== Assistive Technologies on the Linux Desktop ===
+Uses GNOME
+Visual aids
+High Contrast
+Large Text
+Increased cursor size
+Zoom
+Screen reader, orca backend
+Reads text, very irritating
+Can also modify orca from the command line
+orca --text-setup
+Voice, language
+Can enable echo by word and enable key echo
+Can also enable braille...
+
+Sound keys, plays a sound when cap/num lock is on
+Visual Alerts
+Screen will blink when alert displays
+Can use screen keyboard
+
+This is literally just covering the Universal Access section on Gnome...
+
+== Manage User and Group Accounts and related system files ==
+=== Adding and Removing Users ===
+useradd
+useradd command is for the creation of new user accounts on a Linux system
+
+useradd -m -c "COMMENT" -s  /path/to/shell USERNAME
+Create user + home directory with a comment, specify default shell
+Not all distros require this. Don't forget to set the password for the new user
+
+passwd
+passwd commands is for setting a password for a specfic user, can also be used
+by a user to change their own password
+
+passwd -e USER
+Set current password as OTP for user
+
+userdel
+userdel command removes a user's account from the system.
+Without the -r option the user's home directory will not be removed
+
+number in place of the username
+UID
+
+=== Adding and Removing Groups ===
+groups USERNAME
+show user what groups user is a member of
+
+groupadd GROUP
+Create a new group on the system
+
+User can be added to a group during creation
+useradd -G GROUP -m USERNAME
+^^ Make sure group exists
+-g pertains to user's primary group
+
+groupdel GROUP
+Removes a group from the system.
+Users in the group will still exist
+
+=== User and Group Configuration Files ===
+/etc/passwd
+Flat file database that contains info on user and system accounts
+
+/etc/shadow
+Contains encrypted passwords for accounts listed in /etc/passwd file
+
+/etc/group
+Contains group definitions along with what members belong to each group
+
+Red Hat systems, root has UID of 0
+Service users are usually less than 1000
+Server users are usually over 1000
+
+/etc/passwd
+$#$ - password encryption type
+$1$ = MD5
+$2a$, $2y$ = Blowfish
+$5$ = SHA-256
+$6$ = SHA-512
+Following encryption algorithm is the salt
+^^ Looked it up, it is indeed called salt...
+
+Finally is hashed password.
+
+Main configuration Files
+
+/etc/skel
+Special directory that contains ite3ms that automatically get added to a new user's
+home directory.
+
+/etc/default/useradd
+Configuration file is referenced with a new user account is created
+
+getent
+Command is used to query a database for information about a user or group
+
+HOME=/home
+default home creation
+INACTIVE=-1
+Prevents user from accessing with an expired password
+SHELL, set default shell
+GROUP=100
+Defaults to 1000
+getent group 100
+users:x:100:
+Old users default group
+
+/etc/login.defs
+Takes precedence over default useradd file
+
+=== User and Group Modifications ===
+usermod
+modify an existing user account
+
+usermod -a -G GROUP USER
+^^ Capitals matter
+
+chage
+list and modify the aging parameters of a user's password
+
+groupmod
+modify attributes of an existing group, such as name, group ID, etc.
+
+groupmod -g GROUPID GROUP
+Change groups group id
+
+groupmod -n GROUP
+give group a new name
+
+=== Hands-On Lab: Creating Users And Groups and Managing User Accounts ===
+Create a Shared Directory Called /test_scripts
+Create a directory called /test_scripts.
+
+Users Added to the System
+Add four user accounts to the system that will be used for working on the test
+scripts.
+
+Add Users to a Common Group
+Add the four new users to the testers group already created on the system.
+
+Set Appropriate Group Ownership and Permissions
+The group testers needs to own the /test_scripts directory so that the new users
+can all share it. Additionally, the owner and group permissions should be read,
+write, and execute, but there should be no privileges for anyone else.
+
+
+== Automate system administration tasks by scheduling jobs ==
+=== Cron ===
+crontab used to view and edit a cron table file
+
+/etc/cron.hourly
+/etc/cron.daily
+/etc/cron.weekly
+/etc/cron.monthly
+
+/etc/cron.d
+Directory that contains cron jobs for the system
+
+/etc/conf.deny
+User listed in this file will be prevented from using crontabs
+^ Petition to add a certain client's dev...
+
+man 4 crontabs
+Local documentation for crontab files and their formats
+
+minute hour dayOfMonth month dayOfWeek command
+* * * * * /usr/bin/bash /root/scripts/whatever.sh
+
+*/15 * * * * command
+^ Run every 15 minutes
+
+On own file enter user
+USER command
+Optional, but best practice
+Remember to use full paths, runs in it's own shell
+
+crontab -r, clear cron
+
+=== At ===
+What if you just want to run a single command?
+Usually not installed by default
+
+at
+run a one time job
+
+atq
+View job queue
+
+atrm
+Remove a job using it's job number
+
+at.allow/deny
+Allow/deny users the ability to run jobs
+
+Opens in a shell
+at now + 5 minutes
+at 4:00 AM tomorrow
+COMMAND
+<EOT> = End of Transmissions
+ctrl + d = EOT
+
+Remove job,
+atrm JOBID
+
+Run a script
+at -f PATH/TO/SCRIPT TIME PM MONTH DAY
+
+=== Systemd Timer Unit Files ===
+Timer units,
+end in .timer extension
+Need a service file to go with it
+
+Another type of timer doesn't have a file
+monotonic and realtime
+monotonic are designed to run after a tiem has passed
+Can repeat as long as system is running
+Timers deleted
+Directive, OnBootSec=, OnActiveSec=
+Realtime, OnCalendar= Uses calendar function
+
+Why not use cron/at?
+Simpler syntax (lol)
+
+Transient Timers:
+Set up by systemd-run command, do not require a service file
+Like At jobs
+[Timer] Section
+Monotonic OnBootSec=,OnUnitSecActiveSec=
+Realtime OnCalendar=
+Unit=
+Some timer unit files enabled with
+[Install]
+WantedBy=timers.target
+man 5 systemd.timer
+man 7 systemd.time
+
+Commands
+systemctl list-timers --all
+List all timers on a system
+
+systemctl cat <foo.timer>
+Review the contens of a timer unit file
+
+systemd-run --on-active=
+Create a transient timer, that does not require a service file
+
+Timer units will have a [Unit] section as well
+
+Basic Syntax,
+[Unit]
+Description=
+
+[Timer]
+OnCalendar=*-*-* HH:MM:SS
+^Y-M-D
+Resistent=true
+Unit=whatever.service
+Set to rerun,
+
+[Install]
+WantedBy=
+
+Then enable/start
+
+
+=== Hands-on Lab: Scheduling a systemd service job with timer units ===
+During the time that your development team has spent working on the new web-based
+API for your organization, there have been several instances of mistaken keystrokes
+or processes that have necessitated the restoration of the site directory from backup.
+
+You have been asked to run periodic backups of the website directory and, given that
+the development environment does not have access to the backup network, you have
+decided to write a custom service that will do so.
+
+You have previously written the systemd unit files to back up the site.
+You have been provided a file called web-backup.sh in your /root directory
+(NOTE: you will need to become the root user to complete your work).
+Using that file and the associated web-backup.service, create a systemd timer unit
+file that will control the schedule of your service.
+
+After you have all three components ready, stage the files in their appropriate
+locations and start the service for your team and turn it back over for their use.
+
+￼
+Create a Service Timer Unit File
+Follow the scenario to create the appropriate timer unit file.
+
+￼
+Putting Files Where They Belong
+Copy the service and timer files and the shell script into the correct locations.
+
+￼
+Run the Custom Service
+Once the backup service has been created successfully from the scenario,
+make sure it is running so the backup will happen as scheduled.
+
+== Localization and Internationalization ==
+=== Working with the System's Locale ===
+locale
+Display locale info
+
+localectl
+Set default system language/character encoding
+
+locatectl list-locale
+List all locales
+
+UTF-8
+Dominant character encoding
+
+ISO-8859
+Encoding used throughout the world
+
+iconv
+Utility that can be used to convert files from one character encoding to another
+
+Set using LANG environment variable
+LANG=LANGUAGE.utf8
+Be aware of encoding
+
+Some commands are still english, like man pages
+Need to install language specific packs for a specific application
+
+Example Polish language uses iso88592
+
+LANG=C
+Use C language environment
+Useful consistent results across systems
+Blocks are stand in characters
+
+file -i FILE will show encoding
+look for charset
+
+inconv -f encodingFrom -t encodingTo -o outFile inFile
+
+Permanently set LANG variable
+localectl set-locale ENCODING
+
+=== Time and Date on the Linux System ===
+date
+displays date
+
+date -u, view UTC time
+
+View YMD only
+date +%F
+YYYY-MM-DD
++ Format modifier
+date +%D
+DD/MM/YY
+
+I use date +%Y%m%d a lot
+
+Set time with
+date -s "FORMAT"
+
+timedatectl
+display the current date and time settings
+allows updating of the system time and RTC clock
+
+timedatectl set-time "FORMAT"
+
+timedatectl set-timezone "TIMEZONE"
+
+tzselect
+Menu driven command that will find a region's time zone
+
+TZ
+Environemt variable for a time zone
+can be used in a script or user's BASH profile
+
+Realtime clock, hardware clock
+
+Time and Date Files
+RHEL
+/etc/localtime
+symbolic link to /usr/share/zoneinfo
+
+Deb
+/etc/timezone
+
+== Maintain system time ==
+=== Working with Remote Time Servers ===
+Network Time Protocol
+Various Stratum 0
+Reference clocks
+GPS/Atomic clocks
+Radio clocks
+
+Stratum 1
+Take requests from lower level systems
+Communicate with each other
+
+Most requests for current time go to Stratum 2
+Sanity check on each other to make sure they're all in sync
+
+Most routers/mobile devices etc. connect here
+
+ntpd
+Network Time Protocol
+Service that checks upstream time servers
+
+ntpdate
+query a specified NTP server and recieve a new time
+Make sure NTP is stopped
+^^ I have a similar command in my notes
+
+ntpdate 1.pool.ntp.org
+
+/etc/ntp.conf
+Primary configuration file for ntpd
+
+server syntax
+server URL iburst
+Sends several packets in a burst
+Works through all defined servers  in conf file.
+
+ntpq
+query the ntpd daemon for information
+
+Chronyd commands
+timedatectl
+Status of the system's configuration with an ntp server can be checked
+
+chrond
+Modern ntp daemon
+
+/etc/chrony/chrony.conf
+COnfiguration file for the chronyd daemon
+Similar syntax to ntpd.conf
+
+chronyc
+Query chronyd daemone for information on upstream NTP servers
+
+== System Logging ==
+=== ===
+=== ===
+=== ===
+=== ===
+=== ===
+
+== Mail Transfer Agent (MTA) Basics ==
+=== ===
+=== ===
+=== ===
+
+== Manage Printers and printing ==
+=== ===
+=== ===
+=== ===
+
+== Fundamentals of internet protocols ==
+=== ===
+=== ===
+
+== Persistent Network Configuration ==
+=== ===
+=== ===
+
+== Basic Network Troubleshooting ==
+=== ===
+=== ===
+
+== Configure Client-Side DNS ==
+=== ===
+=== ===
+
+== Perform Security Administration Tasks ==
+=== ===
+=== ===
+=== ===
+
+== Set up Host Security ==
+=== ===
+=== ===
+=== ===
+
+== Securing Data with Encryption ==
+=== ===
+=== ===
+=== ===
+=== ===
