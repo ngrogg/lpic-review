@@ -112,6 +112,31 @@ CA can also invalidate a cert if needed by using either OCSP (Online Certificate
 CRL almost completely deprecited in favor of OCSP
 
 == Request, Sign, and Manage Certificates ==
+Creating and working with certificates
+
+Creating a private key
+openssl genrsa -ALGORITHM -out KEY KEYSIZE
+openssl genrsa -aes128 -out mykey.pem 2048
+
+Generating a self-signed cert (public key)
+openssl req -utf8 -new -key KEY -x509 -days LIFESPAN -out CERT
+
+Display certificate
+openssl x509 -in CERT -text -noout
+
+Creating a CSR
+openssl req -new -key PRIVKEY -out CSR
+
+The openssl command creates PEM formatted files by default.
+Other formats,
+DER - A binary form of ASCII PEM
+P7B/PKCS#7 - Base64 encoded ASCII popular in Windows
+PFX/PKCS#12 - A binary format capable of storing keys, certs and intermediary certs together.
+
+Openssl command can convert between formats.
+Check x509, rsa, pkcs7 or pkcs12 man pages.
+Doesn't work with all formats.
+
 == Operating a Certificate Authority ==
 == X.509 Certificates and Public Key Infrastructures ==
 == SSL, TLS, and Apache HTTPD Server ==
