@@ -1,6 +1,7 @@
 # LPIC Review
 Vimwiki review notes and topics for LPIC 101, 102, 201, 202 and 303 exams. <br>
 Covers the LPIC 1-500, LPIC 2-450 and LPIC 303-300. <br>
+Based on the Linux Academy modules. <br>
 
 Highly recommend configuring vim instance to use vimwiki before reading these notes <br>
 
