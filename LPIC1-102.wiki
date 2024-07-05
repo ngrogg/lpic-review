@@ -1124,11 +1124,128 @@ elinks http://localhost
 === Basics of a Message Transfer Agent ===
 === Email Forwarding and Aliases ===
 === Hands-On Lab: Set up local email forwarding ===
+Set up the Alias
+
+First, let's switch to the root user:
+[cloud_user@host]$ sudo su -
+
+Run the following command to add an alias to all mail destined for the root user, so that it will instead get sent to the cloud_user account:
+[root@host]# echo "root:   cloud_user" >> /etc/aliases
+
+Re-generate the Aliases Database File
+Run the following command to re-generate a new /etc/aliases.db file so that your new email alias rule gets registered:
+[root@host]# newaliases
+
+Send a Test Email
+We need to generate an email to test your new forwarding rule.
+This command will send a copy of the /etc/services file as an email attachment, along with the subject line "Just Testing", to the local root account:
+[root@host]# mail -s "Just Testing" -a "/etc/services" root@localhost < /dev/null
+
+We are using a null message body, as we are just checking for the attachment.
+Read the Email, Then Remove It
+
+Go back to the cloud_user account, and run the mail command to view the cloud_user's email message:
+[root@host]# exit
+[cloud_user@host]$ mail
+
+The message sent from the root user should be in the list. Press the number corresponding to the message (typically 1) and then press Enter.
+After we've finished reviewing the message (pressing the spacebar with scroll through the attachment), press q to close the message, then press d at the ampersand prompt (&) to delete the message.
+Finally, press q to quit the mail application.
+
+Conclusion
+All of the mail destined for root will be forwarded now to cloud_user. That was our job, and we got it done. Congratulations!
 
 == Manage Printers and printing ==
 === The Common Unix Printing System (CUPS) ===
 === The Line Print Daemon ===
 === Hands-On Lab: Working with the CUPS Print Server ===
+Install a PDF Printer
+
+Open your terminal application.
+Check to see which printers are installed.
+lpstat -s
+
+Check to see what types of printer connections are available.
+sudo lpinfo -v
+
+Install a PDF printer to use with CUPS.
+sudo lpadmin -p CUPS-PDF -v cups-pdf:/
+
+Determine which driver files we can use with our printer by querying the CUPS database for files that contain "PDF".
+lpinfo --make-and-model "PDF" -m
+
+Use CUPS-PDF.ppd as the driver file.
+sudo lpadmin -p CUPS-PDF -m "CUPS-PDF.ppd"
+
+Run the lpstat command again.
+lpstat -s
+
+Check the status of the printer we just installed.
+lpc status
+
+Enable the printer to accept jobs, and set it up as the default printer.
+sudo lpadmin -d CUPS-PDF -E
+sudo cupsenable CUPS-PDF
+sudo cupsaccept CUPS-PDF
+
+Run the lpc status command again.
+lpc status
+
+The printer should now be ready.
+
+Print a Test Page
+Print a copy of the /etc/passwd file to a PDF file in our home directory.
+lpr /etc/passwd
+
+Verify that there is a copy of the /etc/passwd file in the home directory.
+ls
+
+Modify the Printer and Work with the Print Queue
+Configure the printer so that it will not accept any new jobs.
+sudo cupsreject CUPS-PDF
+Verify the status of the printer.
+
+lpc status
+
+Attempt to print the /etc/group file to the printer.
+lpr /etc/group
+
+You should receive a message that says the printer is not currently accepting jobs.
+Reconfigure the printer to once again accept incoming jobs.
+sudo cupsaccept CUPS-PDF
+
+Check the status of the printer.
+lpc status
+
+Configure the printer so that it accepts jobs to its queue but will not print them.
+sudo cupsdisable CUPS-PDF
+
+Check the status of the printer.
+lpc status
+
+Attempt to print the /etc/group file again.
+lpr /etc/group
+
+List the contents of the /home directory.
+ls
+
+Check the printer's queue.
+lpq
+
+Remove the job from the printer's queue (remember to substitute the job ID from your command's output).
+lprm <JOB_ID>
+
+Verify that the job was successfully removed from the printer's queue.
+lpq
+
+Re-enable the printer's ability to print new jobs.
+sudo cupsenable CUPS-PDF
+
+Verify that the CUPS-PDF printer is once again ready to accept new jobs.
+lpq
+
+Conclusion
+Congratulations, you've successfully completed this hands-on lab!
 
 == Fundamentals of internet protocols ==
 === Networking Fundamentals ===
@@ -1141,23 +1258,420 @@ elinks http://localhost
 == Basic Network Troubleshooting ==
 === Testing Connectivity ===
 === Hands-On Lab: Monitoring Network Access ===
+Introduction
+
+Understanding networking concepts is a more advanced concept for most system administrators, but it is essential to being successful.
+In this activity, the we will use the netcat (nc) utility to generate network traffic between two servers and view that traffic's appearance in a tool called iptraf-ng.
+
+The Scenario
+
+During the development of a new Web-based API our team is working on, they have discovered that they are receiving intermittent network disconnects from clients, even when they are local to the network of the server itself.
+
+We have been provided credentials and access information for two CentOS 7 systems in their environment.
+They have asked for us to install tools that they can use to monitor network traffic between the two systems.
+
+We'll have to install the tools we need and create traffic on port 2525 from server2 to server1. We want to get all network traffic sent to /home/cloud_user/traffic_log.txt.
+Logging In
+
+Use the credentials in the hands-on lab overview page to log into the provided servers.
+It will be easier to have a terminal or two open for each server at the same time.
+We're going to be root right off, so as soon as we get logged in we'll want to run a quick sudo su in each one.
+Install Client Utilities
+
+We've got to install the two packages that the team will use to generate and monitor traffic. Let's use YUM to get it done:
+[root@server1]# yum install iptraf-ng nc
+
+Repeat this on the other server:
+[root@server2]# yum install iptraf-ng nc
+
+Create the Traffic Log File
+On the first server, let's run iptraf-ng and go under Configure...
+In the menu, don't forget this isn't a menu we control with a mouse -- it's all keyboard.
+Make sure Logging is toggled to On. Set the log file path to: /home/cloud_user/traffic_log.txt.
+Then go into IP traffic monitor. In the next menu, select ens5. Once we press Enter the logging will start.
+Listen for Traffic
+
+Let's open a second terminal into server1 and run sudo su right off.
+Once we're there, we're going to start netcat listening on post 2525 with this:
+[root@server1]# nc -l 2525
+
+Send Some Traffic
+
+Now, let's start talking.
+Back in the server2 window we've got open, send netcat traffic to server1 with this (where x.x.x.x is the internal IP of server1 that we'll see on the hands-on lab overview page):
+[root@server2]# nc x.x.x.x 2525
+
+We'll just land at a blinking cursor below the prompt, but we can type a message there and press Enter.
+Once we do, it will show up back in the window we're listening in on server1. A bunch of messages sent from server2 would look like this:
+
+[root@server2]# nc x.x.x.x 2525
+test
+test
+testing
+This is a test
+
+On server1, they would look like this when they arrive:
+[root@server1]# nc -l 2525
+test
+test
+testing
+This is a test
+
+That should be enough traffic for what we're doing.
+On server2, press Ctrl + C to kill the nc command we've got running and flip back over to the terminal we were running iptraf-ng in.
+Press x to stop the monitoring and get out, then choose Exit from the main menu.
+Examine the Log
+
+On server1, if we run ls /home/cloud_user we should see traffic_log.txt listed in the output. Read that to see if it was capturing what we need:
+[root@server1]# less /home/cloud_user/traffic_log.txt
+
+We should see some log entries showing traffic going from server2 to server1 on port 2525.
+Conclusion
+
+We did it. We've got all of the tools in place. There's a tool listening for traffic, and one logging it. We've done our job, and our development team can take things from here. Congratulations!
 
 == Configure Client-Side DNS ==
 === The basics of DNS Resolution from Linux ===
 === Hands-On Lab: Testing DNS Resolution ===
+Testing DNS Resolution
+
+In this hands-on lab, we will utilize the nmcli utility to configure our DNS resolution.
+Please note, the use of eth0 in the video has been replaced with ens5.
+Before We Begin
+
+Open a terminal session, and log in via SSH using the credentials provided on the lab page.
+Review Current DNS Configuration
+
+See if the system can resolve hostnames to IP addresses:
+host www.google.com
+
+Note that the command times out.
+
+Check to see what DNS server entries we have in the /etc/resolv.conf file:
+cat /etc/resolv.conf
+
+Note that we do not have any DNS entries listed.
+Review our network connections:
+nmcli con show
+
+Our default connection name should be System ens5. Review our DNS IP settings:
+nmcli -f ipv4.dns con show "System ens5"
+
+This system obviously does not have any DNS servers configured for use.
+Configure Your System to Use Your Network's DNS
+Modify the system's default connection to use the network's DNS server:
+sudo nmcli con mod "System ens5" ipv4.dns "10.0.0.2"
+
+Verify the settings using the nmcli command and then checking the /etc/resolv.conf file:
+nmcli -f ipv4.dns con show "System ens5"
+
+cat /etc/resolv.conf
+
+We need to reactivate the system's network connection for the change to take effect:
+sudo nmcli con up "System ens5"
+
+Verify our settings once more:
+cat /etc/resolv.conf
+
+Now, attempt to resolve a hostname to an IP address:
+host www.google.com
+
+Our system should be able to resolve an IP address for the domain name.
+
+Conclusion
+Congratulations on completing this hands-on lab!
 
 == Perform Security Administration Tasks ==
 === Determine the Current Security State of a System ===
 === Checking Local Network Security ===
 === Hands-On Lab: Create New sudo Users ===
+Introduction
+
+In this hands-on lab, we'll create new users that will be granted varying degrees of sudo access.
+Solution
+
+Open a terminal session, and log in via SSH using the credentials provided on the lab page.
+Create Two New Users
+Create a gfreeman user on the system:
+sudo useradd -m gfreeman
+
+Create an avance user, and assign it to the wheel supplemental group:
+sudo useradd -G wheel -m avance
+
+Set the password for both accounts to LASudo321:
+sudo passwd gfreeman
+sudo passwd avance
+
+Verify the /etc/sudoers File and Test Access
+
+Verify that the /etc/sudoers file will allow the wheel group access to run all commands with sudo:
+sudo visudo
+
+Note that there should not be a comment (#) on this line of the file:
+%wheel  ALL=(ALL)       ALL
+
+Switch to the avance account, and use the dash (-) to utilize a login shell:
+sudo su - avance
+
+Attempt to read the /etc/shadow file at the console:
+cat /etc/shadow
+
+Rerun the command with the sudo command:
+sudo cat /etc/shadow
+
+After you have verified avance can read the /etc/shadow file, log out of that account:
+exit
+
+Set Up the Web Administrator
+Create a new sudoers file in the /etc/sudoers.d directory that will contain a standalone entry for webmasters:
+sudo visudo -f /etc/sudoers.d/web_admin
+
+Enter in the following at the top of the file:
+Cmnd_Alias  WEB = /bin/systemctl restart httpd.service, /bin/systemctl reload httpd.service
+
+Add another line in the file for gfreeman to be able to use the sudo command in conjunction with any commands listed in the WEB alias:
+gfreeman ALL=WEB
+
+Save and close the file with :wq!.
+
+Next, log in to the gfreeman account:
+sudo su - gfreeman
+
+Attempt to restart the web service:
+sudo systemctl restart httpd.service
+
+Try to read the new web_admin sudoers file:
+sudo cat /etc/sudoers.d/web_admin
+
+Since the cat command is not listed in the command alias group for WEB, gfreeman cannot use sudo to read this file.
+
+Conclusion
+Congratulations on completing this hands-on lab!
 
 == Set up Host Security ==
 === Securing Local Logins ===
 === Securing Network Services ===
 === Hands-On Lab: Host Security with TCP Wrappers and Systemd Sockets ===
+Introduction
+
+A Linux system administrator is responsible for keeping their servers secure.
+There are a multitude of tools and software packages available to keep a networked Linux system safe from malicious intruders.
+In this hands-on lab, we will learn how to move away from always-on services to those that use systemd socket units.
+Socket units only provide access to a network service when an incoming connection requests it.
+To further enchance the security of the service, we will apply TCP wrappers to allow incoming connections to a specified service.
+Connecting to the Lab
+
+Open your terminal application, and run the following command. (Remember to replace <PUBLIC_IP> with the public IP you were provided on the lab instructions page.)
+
+ssh cloud_user@&lt;PUBLIC_IP&gt;
+
+Enter your password at the prompt.
+Configure sshd to use Sockets
+
+Verify that the sshd.socket unit is not active.
+systemctl status sshd.socket
+
+Set up an at job that stops the sshd.service unit and starts sshd.socket.
+sudo at now + 3 minutes
+
+Enter your password at the prompt.
+Add the following:
+at> systemctl stop sshd.service
+at> systemctl start sshd.socket
+
+Press Ctrl + D to end the at job configuration.
+Verify that the sshd.socket unit is active and running.
+systemctl status sshd.socket
+
+Enable the socket for SSH and disable the service for SSH.
+sudo systemctl enable sshd.socket
+sudo systemctl disable sshd.service
+
+Set Up TCP Wrappers to Only Allow SSH
+Verify that the sshd server has been compiled to use TCP wrappers.
+ldd /usr/sbin/sshd | grep libwrap
+
+Edit the /etc/hosts.allow file.
+sudo vim /etc/hosts.allow
+
+Add the following line to the file:
+sshd2 sshd : ALL
+
+Edit the /etc/hosts.deny file.
+sudo vim /etc/hosts.deny
+
+Add the following line to the file:
+ALL : ALL
+
+Exit the SSH session.
+exit
+
+Reconnect to the secure shell session.
+ssh cloud_user@&lt;PUBLIC_IP&gt;
+
+Enter your password at the prompt.
+
+Conclusion
+Congratulations, you've successfully completed this hands-on lab!
 
 == Securing Data with Encryption ==
 === GPG ===
 === SSH ===
 === Hands-On Lab: Encrypt a File using GPG ===
+Introduction
+
+A Linux system administrator is responsible for keeping their servers secure.
+There are a multitude of tools and software packages available to keep a networked Linux system safe from malicious intruders.
+In this hands-on lab, we will learn how to move away from always-on services to those that use systemd socket units.
+Socket units only provide access to a network service when an incoming connection requests it.
+To further enchance the security of the service, we will apply TCP wrappers to allow incoming connections to a specified service.
+Connecting to the Lab
+
+Open your terminal application, and run the following command. (Remember to replace <PUBLIC_IP> with the public IP you were provided on the lab instructions page.)
+ssh cloud_user@&lt;PUBLIC_IP&gt;
+
+Enter your password at the prompt.
+Configure sshd to use Sockets
+
+Verify that the sshd.socket unit is not active.
+systemctl status sshd.socket
+
+Set up an at job that stops the sshd.service unit and starts sshd.socket.
+sudo at now + 3 minutes
+
+Enter your password at the prompt.
+Add the following:
+at> systemctl stop sshd.service
+at> systemctl start sshd.socket
+
+Press Ctrl + D to end the at job configuration.
+Verify that the sshd.socket unit is active and running.
+systemctl status sshd.socket
+
+Enable the socket for SSH and disable the service for SSH.
+sudo systemctl enable sshd.socket
+sudo systemctl disable sshd.service
+
+Set Up TCP Wrappers to Only Allow SSH
+Verify that the sshd server has been compiled to use TCP wrappers.
+ldd /usr/sbin/sshd | grep libwrap
+Edit the /etc/hosts.allow file.
+sudo vim /etc/hosts.allow
+
+Add the following line to the file:
+sshd2 sshd : ALL
+Edit the /etc/hosts.deny file.
+sudo vim /etc/hosts.deny
+
+Add the following line to the file:
+ALL : ALL
+
+Exit the SSH session.
+exit
+
+Reconnect to the secure shell session.
+ssh cloud_user@&lt;PUBLIC_IP&gt;
+
+Enter your password at the prompt.
+
+Conclusion
+Congratulations, you've successfully completed this hands-on lab!
+
 === Hands-On Lab: Generating and Exchanging SSH Keys for Secure Access ===
+Introduction
+
+Understanding the creation and exchange of SSH keys is a key concept to grasp as a new system administrator.
+In this lab, we will generate keys on two systems using the ssh-keygen utility and learn how to exchange and verify the keys with a remote system using ssh-copy-id and associated key files on each.
+At the end of this lab, you will understand how to create secure keys for remote access, how to exchange them, and where to store them on each system involved in the chain.
+Create the SSH Keys on Server 1 and Server 2
+Create the Key on Server 1
+
+In your terminal, log in to Server 1.
+ssh cloud_user@&lt;SERVER1_PUBLIC_IP&gt;
+
+List the contents of the current directory.
+ls -la
+
+Change to the .ssh directory.
+cd .ssh
+
+List the contents of the .ssh directory.
+ls -la
+
+Generate a key for Server 1.
+ssh-keygen
+
+Press Enter at the next three prompts.
+
+List the contents of the .ssh directory again.
+ls -la
+
+List the contents of the id_rsa.pub file.
+cat id_rsa.pub
+
+Copy the output of this command to your clipboard.
+Create the Key on Server 2
+Log in to Server 2.
+ssh cloud_user@&lt;SERVER2_PUBLIC_IP&gt;
+
+Change to the .ssh directory.
+cd .ssh/
+
+List the contents of the .ssh directory.
+ls -la
+
+Install the nano text editor.
+sudo yum install nano
+
+Enter your password at the prompt.
+
+Open the authorized_keys file in nano.
+nano authorized_keys
+
+Add the key we just generated to the file. (Note: We don't see the other accounts shown in the video, but it won't impact the lab activity.)
+Press Ctrl + X.
+
+Press Y and then Enter to save the changes.
+
+Exchange the SSH Keys between the Servers
+In your Server 2 terminal window, create a new key.
+
+ssh-keygen
+
+Press Enter for the next three prompts.
+
+List the contents of the current directory.
+ls -la
+
+List the contents of the id_rsa.pub file.
+cat id_rsa.pub
+
+Copy the output of this command to your clipboard.
+
+Type exit to log out of Server 2.
+
+Install nano.
+sudo yum install nano
+
+Type y to continue.
+
+List the contents of the current directory.
+ls -la
+
+Open the authorized_keys file in nano.
+nano authorized_keys
+
+Add the key we just generated to the file.
+Press Ctrl + X.
+
+Press Y then Enter to save the changes.
+Test the Configuration
+
+Attempt to log in to Server 2 from Server 1 without a password.
+ssh cloud_user@&lt;SERVER2PUBLIC_IP&gt;
+
+Attempt to log in to Server 1 from Server 2 without a password.
+ssh cloud_user@&lt;SERVER1PUBLIC_IP&gt;
+
+Conclusion
+Congratulations, you've successfully completed this hands-on lab!
