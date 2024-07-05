@@ -1,7 +1,8 @@
 [[index|back]]
 
 = LPIC-3 303: Security =
-== Cryptography Concepts Part 1 ==
+== 325.1 X.509 Certificates and Public Key Infrastructures ==
+=== Cryptography Concepts Part 1 ===
 Cryptography Concepts
 PKI and Trust Chains
 Creating and working with certificates
@@ -52,7 +53,7 @@ Ciphertext may be deciphered (unencrypted) with a key
 Two types of encryption
 Symmetric and Asymmetric encryption
 
-== Cryptography Concepts Part 2 ==
+=== Cryptography Concepts Part 2 ===
 Symmetric Encryption:
 Only one key
 Both parties must know key
@@ -88,7 +89,7 @@ crc-32 (don't use, insecure), md5, sha-1 (most common)
 
 If file is modified md5 sum changes
 
-== PKI and Trust Chains ==
+=== PKI and Trust Chains ===
 PKI = Public Key Infrastructure
 
 Use ID, Gov't and airline as an example
@@ -111,7 +112,7 @@ When a CA signs a CSR it produces a certificate that is trusted by the signing C
 CA can also invalidate a cert if needed by using either OCSP (Online Certificate Status Protocol) or by using a CRL (Certificate Revocation List)
 CRL almost completely deprecited in favor of OCSP
 
-== Request, Sign, and Manage Certificates ==
+=== Request, Sign, and Manage Certificates ===
 Creating and working with certificates
 
 Creating a private key
@@ -137,63 +138,111 @@ Openssl command can convert between formats.
 Check x509, rsa, pkcs7 or pkcs12 man pages.
 Doesn't work with all formats.
 
-== Operating a Certificate Authority ==
-== X.509 Certificates and Public Key Infrastructures ==
-== SSL, TLS, and Apache HTTPD Server ==
-== The ssl.conf File: Important Directives and Security Focused Configurations ==
-== Understanding SNI and HSTS ==
-== Using the openssl Command to Work with Certificates and Web Servers ==
-== Working with OpenSSL and Httpd ==
+=== Operating a Certificate Authority ===
+Understangind CAs
+What makes a CA is really a unique key pair
+
+A CA public key is typically signed by another CA that is trusted
+
+Three primary reponsibilities
+Sign valid CSRs
+Maintain security of their private key
+Revoke compromised or misused certificates
+
+Operating a CA
+Creating a private key
+openssl genrsa -ALGORITHM -out KEY KEYSIZE
+openssl genrsa -aes128 -out mykey.key 2048
+
+Generating a self-signed certificate (public key)
+openssl -utf8 -new -key KEY -x509 -days LIFESPAN -out CERT
+
+Add -set_serial SERIAL for a CA certificate
+
+Signing a CSR as a CA (requires CA keys)
+openssl ca -in CSR -out CRT
+
 == 325.2 X.509 Certificates for Encryption, Signing and Authentication ==
-== Creating Encrypted Volumes ==
-== Demo: Working with LUKS ==
-== Disk Encryption with eCryptfs ==
-== Working with DNS ==
-== Securing DNS with DNSSEC ==
-== Understanding DANE ==
-== Kernel Security Part 1 ==
-== Kernel Security Part 2 ==
-== Securing Grub ==
-== Linux Kernel Security ==
-== Threat Detection ==
-== Working with Maldet ==
-== Understanding Rootkits ==
-== System Auditing in Linux ==
-== Working with the Audit Log ==
-== Linux Login Essentials ==
-== PAM Concepts ==
-== Kerberos Concepts ==
-== Understanding SSSD ==
-== Configuring PAM ==
-== Configuring SSSD ==
-== Overview of FreeIPA ==
-== Installing and Configuring FreeIPA ==
-== Working with FreeIPA ==
-== Working with FreeIPA ==
-== Basic System Permissions ==
-== Extended Attributes ==
-== Using ACLs ==
-== Managing File Attributes and Permissions ==
-== Understanding MAC ==
-== SELinux ==
-== AppArmor and Smack: MAC alternatives ==
-== Troubleshooting SELinux ==
-== NFSv4 Improvements ==
-== NFS in Practice ==
-== NFS4 ACLs ==
-== CIFS Configuration ==
-== Exporting an NFSv4 Volume with ACLs ==
-== Configuring FreeRADIUS ==
-== Analyzing Network Traffic ==
-== Network Utilities and Threats ==
-== Packet Capture and Analysis ==
-== Network Monitoring ==
-== Configure and Use Snort ==
-== OpenVAS Overview ==
-== Firewall Concepts ==
-== Advanced Firewall Concepts ==
-== Ebtables and Nftables ==
-== Working with IP Sets and iptables ==
-== OpenVPN ==
-== IPSec Concepts ==
-== Working with OpenVPN (and iptables) ==
+=== SSL, TLS, and Apache HTTPD Server ===
+=== The ssl.conf File: Important Directives and Security Focused Configurations ===
+=== Understanding SNI and HSTS ===
+=== Using the openssl Command to Work with Certificates and Web Servers ===
+=== Hands-On Lab: Working with OpenSSL and Httpd ===
+
+== 325.3 Encrypted Files Systems ==
+=== Creating Encrypted Volumes ===
+=== Demo: Working with LUKS ===
+=== Hands-On Lab: Disk Encryption with eCryptfs ===
+
+== 325.4 DNS and Cryptography ==
+=== Working with DNS ===
+=== Securing DNS with DNSSEC ===
+=== Understanding DANE ===
+
+== 326.1 Host Hardening ==
+=== Kernel Security Part 1 ===
+=== Kernel Security Part 2 ===
+=== Securing Grub ===
+=== Hands-On Lab: Linux Kernel Security ===
+
+== 326.2 Host Intrustion Detection ==
+=== Threat Detection ===
+=== Working with Maldet ===
+=== Understanding Rootkits ===
+=== System Auditing in Linux ===
+=== Hands-On Lab: Working with the Audit Log ===
+
+== 326.3 User Management and Authentication ==
+=== Linux Login Essentials ===
+=== PAM Concepts ===
+=== Kerberos Concepts ===
+=== Understanding SSSD ===
+=== Hands-On Lab: Configuring PAM ===
+=== Hands-On Lab: Configuring SSSD ===
+
+== 326.4 FreeIPA Installation and Samba Integration ==
+=== Overview of FreeIPA ===
+=== Installing and Configuring FreeIPA ===
+=== Working with FreeIPA ===
+=== Hands-On Lab: Working with FreeIPA ===
+
+== 327.1 Discretionary Access Control ==
+=== Basic System Permissions ===
+=== Extended Attributes ===
+=== Using ACLs ===
+=== Hands-On Lab: Managing File Attributes and Permissions ===
+
+== 327.2 Mandatory Access Control ==
+=== Understanding MAC ===
+=== SELinux ===
+=== AppArmor and Smack: MAC alternatives ===
+=== Hands-On Lab: Troubleshooting SELinux ===
+
+== 327.3 Network File Systems ==
+=== NFSv4 Improvements ===
+=== NFS in Practice ===
+=== NFS4 ACLs ===
+=== CIFS Configuration ===
+=== Hands-On Lab: Exporting an NFSv4 Volume with ACLs ===
+
+== 328.1 Network Hardening ==
+=== Configuring FreeRADIUS ===
+=== Analyzing Network Traffic ===
+=== Network Utilities and Threats ===
+=== Hands-On Lab: Packet Capture and Analysis ===
+
+== 328.2 Network Intrustion Detection ==
+=== Network Monitoring ===
+=== Configure and Use Snort ===
+=== OpenVAS Overview ===
+
+== 328.3 Packet filtering ==
+=== Firewall Concepts ===
+=== Advanced Firewall Concepts ===
+=== Ebtables and Nftables ===
+=== Hands-On Lab: Working with IP Sets and iptables ===
+
+== 328.4 Virtuan Private Networks ==
+=== OpenVPN ===
+=== IPSec Concepts ===
+=== Hands-On Lab: Working with OpenVPN (and iptables) ===
