@@ -911,53 +911,253 @@ COnfiguration file for the chronyd daemon
 Similar syntax to ntpd.conf
 
 chronyc
-Query chronyd daemone for information on upstream NTP servers
+Query chronyd daemon for information on upstream NTP servers
 
 == System Logging ==
-=== ===
-=== ===
-=== ===
-=== ===
-=== ===
+=== Legacy Logging Systems ===
+Standard Linux Log Files
+/var/log/dmesg
+Linux kernel boot messages
+
+/var/log/messages
+Standard system log messages
+
+/var/log/secure
+Security log messges, containing information on login attempts
+
+/var/log/maillog
+Local email log messages (from and to server)
+
+On systems that are not using systemd, these logs are managed by rsyslog
+Legacy logging service
+
+dmesg
+Utility that allows an admin to view the /var/log/dmesg file in a text pager
+
+logger
+Command that can be used to send information to the /var/log/messages log file
+
+tail, grep
+Common commands that are used to peruse the log files on a Linux system
+
+Logging Priority Levels
+0 emerg system is unusable
+1 alert action must be taken immediately
+2 crit critical conditions
+3 err error conditions
+4 warn warning conditions
+5 notice normal but significant condition
+6 info informational
+7 debug debug-level messages
+
+dmesg -x --level=err, warn | less
+
+Linux Logging Facilities
+kern kernel messages
+user random user-level messages
+mail mail system
+daemon system daemons
+auth security/authorization messages
+syslog messages generated internally by syslogd
+lpr line printer subsystem
+news network news subsystem
+
+=== Rsyslog  ===
+rsyslog configuration
+/etc/rsyslog.conf
+This is the main configuration file for the rsyslog logging daemon
+
+/etc/logrotate.conf
+This is the main configuration file for the logrotate daemon that is responsible for managing the storage and rotation of old log files
+
+/etc/logrotate.d/
+Extra logrotate configurations for other daemons can be placed here.
+
+logrotate
+the logrotate command will rotate logs based on the specified configuration file
+
+logrotate config
+/path/to/log_to_rotate {
+  how often to rotate
+  create PERMS owner group
+  minsize SIZE_TO_ROTATE_AT
+  rotate HOW_MANY_COPIES_TO_KEEP
+}
+
+=== Introduction to the systemd journal ===
+Binary file that records everything that happens on a system
+Kernel log messages
+System log messages, same as syslog
+System services that sent output to standard output and standard error
+Audit records for SELinux messages
+
+Default log at /run/log/journal
+Doesn't persist on reboot
+
+To make permanent:
+mkdir -p /var/log/journal
+systemd-tmpfiles --create --prefix /var/log/journal
+
+Journal configuration
+man 5 journald.conf
+/etc/systemd/journald.conf
+[Journal]
+Storage=
+auto, default. Stores data to /var/log/journal (if it exists) and /run/log/journal
+persistent, data is stored to /var/log/journal hierarchy
+volatile, data is only sent to /run/log/journal, resides in RAM
+none, no data is kept, all log data is dropped
+
+Compress=
+Takes a Boolean value
+yes, the default. Any data above a threshold are compressed
+no, no data is compressed
+
+SystemMaxUse=, RuntimeMaxUse=
+How much RAM/disk space to use.
+Default is 10%
+
+SystemMaxFileSize=, RuntimeMaxFilesSize=
+SystemMaxFileSize pertains to how large individual journal files may get. May have more than one journal file on system.
+RuntimeMaxFileSize pertains to how large individual files can get while in RAM
+Sizes can be in bytes of K, M, G, T, P or E
+
+MaxRetentionSec=
+How long to store entries
+Size based is usually enough
+Default is 0 (off)
+Time can be set to a number followed by years, month, week, day, h or m. Default unit is seconds
+
+=== Journalctl ===
+journalctl flags
+-r
+Show newest entries first
+
+-e
+Jumps to end of page
+
+-n
+Shows the most recent entries and limits the amount of lines specified
+
+-f
+Shows the most recent log entries and follows the journal as new entries are created.
+Similar to tail -f /var/log/messages
+
+-u
+Shows entries for unit specified
+
+-o
+Formats the output of the journal control command
+
+verbose
+Displays the journal with all of the entry intems with their fields
+
+json-pretty
+Formats the output in multi-line json format. Very useful for data analysis tools.
+
+See man 7 systemd.journal-fields for explanation of fields in output
+
+systemd-cat
+Sends output of a command to the journal
+
+-x
+Show log lines with some text that comes from the message catalog.
+Not all log entries will have explanatory text available.
+
+-k
+Show only kernel messages
+Similar to dmesg command
+
+-b
+Shows all the journal entries that have been collected since them ost recent system boot up.
+
+--list-boots
+Show list of recorded boot sessions.
+Journal must be persistent for this to be useful.
+
+--since,--until
+Show entries new than or until a date and time.
+Date follows YYYY-MM-DD HH:MM:SS format
+00:00:00 implied if no time passed.
+Also uses text like "yesterday", "today", or "now".
+
+--disk-usage
+Displays the amount of disk space that the journal is consuming.
+
+--rotate
+Rotate the journal files.
+
+=== Hands-on Lab: Working with System Service Log Files using the journal control ===
+Introduction
+
+Troubleshooting is an important part of working with services through systemd.
+In this hands-on lab, we will learn how to view system service log files using the Journal Control utility.
+At the end of this hands-on lab, you will know how to use the built-in journalctl utility to view and troubleshoot system services.
+
+Check the status of the web service.
+systemctl status httpd.service
+
+Attempt to start the web service.
+systemctl start httpd.service
+
+After the service fails to start, check the journal.
+journalctl -u httpd.service
+
+Check the directory where the httpd configuration file should be.
+ls /etc/httpd/conf
+
+Restore the original httpd configuration file.
+mv /etc/httpd/conf/httpd.conf.bkup /etc/httpd/conf/httpd.conf
+
+Restart the service.
+systemctl restart httpd.service
+
+Verify That the Web Server Service Is Running
+
+Check the status of the service.
+systemctl status httpd.service
+
+Navigate to the local web page.
+elinks http://localhost
 
 == Mail Transfer Agent (MTA) Basics ==
-=== ===
-=== ===
-=== ===
+=== Basics of a Message Transfer Agent ===
+=== Email Forwarding and Aliases ===
+=== Hands-On Lab: Set up local email forwarding ===
 
 == Manage Printers and printing ==
-=== ===
-=== ===
-=== ===
+=== The Common Unix Printing System (CUPS) ===
+=== The Line Print Daemon ===
+=== Hands-On Lab: Working with the CUPS Print Server ===
 
 == Fundamentals of internet protocols ==
-=== ===
-=== ===
+=== Networking Fundamentals ===
+=== Common Networking Services ===
 
 == Persistent Network Configuration ==
-=== ===
-=== ===
+=== NetworkManager ===
+=== Legacy Networking Tools ===
 
 == Basic Network Troubleshooting ==
-=== ===
-=== ===
+=== Testing Connectivity ===
+=== Hands-On Lab: Monitoring Network Access ===
 
 == Configure Client-Side DNS ==
-=== ===
-=== ===
+=== The basics of DNS Resolution from Linux ===
+=== Hands-On Lab: Testing DNS Resolution ===
 
 == Perform Security Administration Tasks ==
-=== ===
-=== ===
-=== ===
+=== Determine the Current Security State of a System ===
+=== Checking Local Network Security ===
+=== Hands-On Lab: Create New sudo Users ===
 
 == Set up Host Security ==
-=== ===
-=== ===
-=== ===
+=== Securing Local Logins ===
+=== Securing Network Services ===
+=== Hands-On Lab: Host Security with TCP Wrappers and Systemd Sockets ===
 
 == Securing Data with Encryption ==
-=== ===
-=== ===
-=== ===
-=== ===
+=== GPG ===
+=== SSH ===
+=== Hands-On Lab: Encrypt a File using GPG ===
+=== Hands-On Lab: Generating and Exchanging SSH Keys for Secure Access ===
