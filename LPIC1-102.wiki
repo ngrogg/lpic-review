@@ -1196,6 +1196,7 @@ Finally, press q to quit the mail application.
 Conclusion
 All of the mail destined for root will be forwarded now to cloud_user. That was our job, and we got it done. Congratulations!
 
+TODO
 == Manage Printers and printing ==
 === The Common Unix Printing System (CUPS) ===
 === The Line Print Daemon ===
@@ -1288,14 +1289,17 @@ lpq
 Conclusion
 Congratulations, you've successfully completed this hands-on lab!
 
+TODO
 == Fundamentals of internet protocols ==
 === Networking Fundamentals ===
 === Common Networking Services ===
 
+TODO
 == Persistent Network Configuration ==
 === NetworkManager ===
 === Legacy Networking Tools ===
 
+TODO
 == Basic Network Troubleshooting ==
 === Testing Connectivity ===
 === Hands-On Lab: Monitoring Network Access ===
@@ -1371,6 +1375,7 @@ Conclusion
 
 We did it. We've got all of the tools in place. There's a tool listening for traffic, and one logging it. We've done our job, and our development team can take things from here. Congratulations!
 
+TODO
 == Configure Client-Side DNS ==
 === The basics of DNS Resolution from Linux ===
 === Hands-On Lab: Testing DNS Resolution ===
@@ -1422,6 +1427,7 @@ Our system should be able to resolve an IP address for the domain name.
 Conclusion
 Congratulations on completing this hands-on lab!
 
+TODO
 == Perform Security Administration Tasks ==
 === Determine the Current Security State of a System ===
 === Checking Local Network Security ===
@@ -1489,6 +1495,7 @@ Since the cat command is not listed in the command alias group for WEB, gfreeman
 Conclusion
 Congratulations on completing this hands-on lab!
 
+TODO
 == Set up Host Security ==
 === Securing Local Logins ===
 === Securing Network Services ===
@@ -1555,6 +1562,7 @@ Enter your password at the prompt.
 Conclusion
 Congratulations, you've successfully completed this hands-on lab!
 
+TODO
 == Securing Data with Encryption ==
 === GPG ===
 === SSH ===
