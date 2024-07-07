@@ -1122,7 +1122,48 @@ elinks http://localhost
 
 == Mail Transfer Agent (MTA) Basics ==
 === Basics of a Message Transfer Agent ===
+Linux Message Transfer Agents (MTA)
+MTA
+Program (service) that routess email to its intended destination
+
+MTA -> MDA (Port 25 TCP) -> MUA
+
+Common MTA Systems
+sendmail
+One of the oldested MTA Systems
+Hard to configure
+
+postfix
+Modern mta
+Simpler to configure, great security
+
+exim
+Old default
+Good security and easier to configure than sendmail
+
+Sendmail emulation layer
+System administrators can use sendmail commands on other MTAs as if they were managing a sendmail installation
+mailq etc.
+
 === Email Forwarding and Aliases ===
+Local Email Forwarding
+/etc/aliases
+plain text file that can be modified to set up forwarding addresses for users on a system
+
+newaliases
+After /etc/aliases file modified, newaliases will regenerate the /etc/aliases.db file MTA uses for mail delivery
+
+Email commands
+mail
+command used to send an email to a user from the command line
+Also used to view the email of a user on the system
+
+mailq
+used to view the email that resides in the email queue
+
+~/.forward
+local config used to forward email destined for user to send to another user or external email address
+
 === Hands-On Lab: Set up local email forwarding ===
 Set up the Alias
 
