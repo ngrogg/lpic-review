@@ -164,10 +164,170 @@ openssl ca -in CSR -out CRT
 
 == 325.2 X.509 Certificates for Encryption, Signing and Authentication ==
 === SSL, TLS, and Apache HTTPD Server ===
+SSL, TLS, and common Transport Security Layer Threats
+Working with Apache's mod_ssl
+Troubleshooting using openssl
+
+SSL stands for Secure Sockets Layer
+SSL was the original protocol for securing web traffic
+Latest version is SSLV3 which is deprecated
+It should not be used
+
+TLS for Transport Layer Security
+TLS successor to SSL begginning with TLS 1.0
+TLS 1.2 is the current standard
+TLS 1.3 proposed as new standard
+
+Transport Layer Security
+TLS and SSL aim to address the issue of secure communication over a public network
+protocols meet the following needs
+Securely encrypt exchanged data
+Authenticate at least one part
+Ensure data integrity
+Prevent replay attacks
+
+TLS achieves this through the use of PKI as well as general encryption practice
+
+"Man in the middle" style attacks can be a threat to TLS.
+Attack third party intercepts and/or alters data between parties
+Use TLS 1.2 or newer as soon as feasible
+Encrypt all traffic
+Each TLS update, vulns like POODLE and BEAST are patched and weak ciphers are deprecated
+Some security measures do lie with the client (not using bank website on public wifi)
+
 === The ssl.conf File: Important Directives and Security Focused Configurations ===
+Working with mod_ssl
+Secure http traffic with PKI:
+SSLCertificateFile CERT
+SSLCertificateKeyFile KEY
+
+Authenticate with a client certificate:
+SSLVerifyClient require
+SSLVerifyDepth 1
+SSLCACertificateFile CACERT
+
+Configure Cipher usage:
+SSLCipherSuite HIGH:!aNULL:!MD5
+
+OCSP Stapling:
+SSLUseSXtapling On
+SSLStaplingCache "shmcb:logs/ssl_stapling(32768)"
+
 === Understanding SNI and HSTS ===
+Apache and mod_ssl
+Server name Indication (SNI)
+Only able to bind a cert to a single socket
+One cert for every IP/port combo
+
+Starting with Apache 2.2.12 and OpenSSL 0.9.8j
+It's possible to have many certs on the same socket
+Allows the use of name-based virtual hosts with unique certificates
+SSLStrictSNIVHostCheck
+Directive for SNI
+On or off
+Non-SNI clients able to use SNI virtualhosts
+Can cause issues
+
+HTTPS Strict Transport Security (HSTS)
+HSTS is a way to encourage encryption for an entire domain rather than select parts
+Special header is sent by teh web server which instructs the browser to direct all traffic over SSL
+
+header always set Strict-Transport-Security "max-age=300; includeSubDomains;preload".
+
+max age important, what tells browser how long to operate
+When cutting over a legacy website you might need to roll back
+TTL
+Want to start with a low number
+If it goes sideways browser will check on a non-secure port
+Preload
+List of known hsts website
+Tells browser to treat site as a known HSTS website
+
 === Using the openssl Command to Work with Certificates and Web Servers ===
+More on openssl
+Establish a secure connection:
+openssl s_client -connect HOST
+
+Validate a trust chain:
+openssl verify -verbose CERT
+
+View Certificate details:
+openssl x509 -text CERT
+
 === Hands-On Lab: Working with OpenSSL and Httpd ===
+Open your terminal application, and run the following command (remember to replace <PUBLIC_IP> with the public IP you were provided on the lab instructions page):
+ssh cloud_user@&lt;PUBLIC_IP&gt;
+
+Type yes at the prompt.
+Enter your cloud_user password at the prompt.
+
+Install mod_ssl on the Host webserver
+Log in to the webserver host.
+ssh webserver
+Escalate privileges to root.
+sudo su -
+
+Install mod_ssl.
+yum install -y mod_ssl
+
+Generate and Sign a Private Key
+Change to the /tls/ directory.
+cd /etc/pki/tls/
+
+Create a new encrypted private key.
+openssl genrsa -aes128 -out private/httpdkey.pem
+
+Enter httpd at the next two passphrase prompts.
+Generate a self-signed certificate using the encrypted private key.
+openssl req -new -x509 -key private/httpdkey.pem -out certs/httpdcert.pem -days 365
+
+Enter httpd at the passphrase prompt.
+At the next prompt, enter the following information:
+Country Name: US
+State or Province Name: Texas
+Locality Name: Dallas
+Organization Name: Example Corp
+Common Name: shop.example.com
+Email Address: webmaster@example.com
+
+Configure the Default Apache Virtual Host
+Edit /etc/httpd/conf.d/ssl.conf.
+vim /etc/httpd/conf.d/ssl.conf
+
+Type /Virtual to search for the SSH Virtual Host Context section.
+At the end of the <VirtualHost _default_:443> section, add the following on a new line:
+ServerName shop.example.com:443
+
+Type /SSLCert to search for the Server Certificate section.
+Locate the line SSLCertificateFile /etc/pki/tls/certs/localhost.crt, and change it to the following:
+SSLCertificateFile /etc/pki/tls/certs/httpdcert.pem
+
+Locate the line SSLCertificateKeyFile /etc/pki/tls/private/localhost.key, and change it to the following:
+SSLCertificateKeyFile /etc/pki/tls/private/httpdkey.pem
+
+Press Esc, then type :wq to exit the vim text editor.
+Restart the Apache httpd server.
+systemctl restart httpd
+
+Enter httpd at the passphrase prompt.
+Open port 443 on the OS firewall.
+firewall-cmd --add-service=https --permanent
+
+Reload the firewall.
+firewall-cmd --reload
+
+Verify the Configuration
+
+Press Ctrl + D twice to log out of webserver and return to workstation.
+Verify that the configuration is working properly.
+openssl s_client -connect shop.example.com:443
+
+Press Ctrl + C to return to the command prompt.
+Write the s_client output to a file.
+openssl s_client -connect shop.example.com:443 > /home/cloud_user/httpd_output
+
+List the contents of the file to verify that the certificate information is there.
+cat /home/cloud_user/httpd_output
 
 == 325.3 Encrypted Files Systems ==
 === Creating Encrypted Volumes ===
