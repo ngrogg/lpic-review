@@ -1286,9 +1286,6 @@ sudo cupsenable CUPS-PDF
 Verify that the CUPS-PDF printer is once again ready to accept new jobs.
 lpq
 
-Conclusion
-Congratulations, you've successfully completed this hands-on lab!
-
 TODO
 == Fundamentals of internet protocols ==
 === Networking Fundamentals ===
@@ -1424,9 +1421,6 @@ host www.google.com
 
 Our system should be able to resolve an IP address for the domain name.
 
-Conclusion
-Congratulations on completing this hands-on lab!
-
 TODO
 == Perform Security Administration Tasks ==
 === Determine the Current Security State of a System ===
@@ -1492,9 +1486,6 @@ sudo cat /etc/sudoers.d/web_admin
 
 Since the cat command is not listed in the command alias group for WEB, gfreeman cannot use sudo to read this file.
 
-Conclusion
-Congratulations on completing this hands-on lab!
-
 TODO
 == Set up Host Security ==
 === Securing Local Logins ===
@@ -1559,9 +1550,6 @@ ssh cloud_user@&lt;PUBLIC_IP&gt;
 
 Enter your password at the prompt.
 
-Conclusion
-Congratulations, you've successfully completed this hands-on lab!
-
 TODO
 == Securing Data with Encryption ==
 === GPG ===
@@ -1622,9 +1610,6 @@ Reconnect to the secure shell session.
 ssh cloud_user@&lt;PUBLIC_IP&gt;
 
 Enter your password at the prompt.
-
-Conclusion
-Congratulations, you've successfully completed this hands-on lab!
 
 === Hands-On Lab: Generating and Exchanging SSH Keys for Secure Access ===
 Introduction
@@ -1721,6 +1706,3 @@ ssh cloud_user@&lt;SERVER2PUBLIC_IP&gt;
 
 Attempt to log in to Server 1 from Server 2 without a password.
 ssh cloud_user@&lt;SERVER1PUBLIC_IP&gt;
-
-Conclusion
-Congratulations, you've successfully completed this hands-on lab!
