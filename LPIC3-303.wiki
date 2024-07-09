@@ -331,8 +331,90 @@ cat /home/cloud_user/httpd_output
 
 == 325.3 Encrypted Files Systems ==
 === Creating Encrypted Volumes ===
+Disk Encryption Concepts
+File System Encryption with eCryptfs
+Working with LUKS
+
+Use cases of disk encryption
+Protect data at rest
+Protect removable media
+Add additional data security such as an onboard drive
+
+Methods of disk encryption
+Block device - LUKS
+File system level - eCryptfs
+
+Disk encryption tools
+em-encrypt and luks
+cryptmount
+eCryptfs
+EncFS
+
+Disk Encryption with eCryptfs and EncFS
+eCryptfs provides file system level encryption
+Uses ecryptfs package
+Mount a new directory using the ecryptfs type
+PAM module provided for automatic mounting options
+ecryptfs-utils provides helper utilities
+EncFS is similar but targets non-superusers
+Allows for creation of encrypted repos by standard users
+
 === Demo: Working with LUKS ===
+Working with LUKS
+Create encrypted volumes
+cryptsetup luksFormat DEVICE
+cryptsetup luksOpen DEVICE mapping
+
+mapping can be anything you'd like, it's a name
+
+Luks Keys
+Example LUKS key
+dd if=/dev/urandom of=/root/lukskey bs=4096 count=1
+cryptsetup luksAddKey DEVICE keyfile
+
+Mount on boot with Crypttab
+/etc/crypttab
+mapping DEVICE keyfile filesystemtype (luks)
+
+/etc/fstab
+
+mount -a will not work
+Must reboot
+
 === Hands-On Lab: Disk Encryption with eCryptfs ===
+Install eCryptfs
+
+Run the following command:
+sudo apt-get install ecryptfs-utils
+
+Type y at the prompt.
+
+Configure /opt/protected as an Encrypted Mount
+Ensure that the /opt/protected directory exists.
+ll /opt/
+
+Encrypt the file system.
+sudo mount -t ecryptfs /opt/protected /opt/protected
+
+Type supersecret! at the passphrase prompt.
+Press Enter to accept the default options at the next two prompts.
+Type y to accept the defaults at the next two prompts.
+Type yes at the next two prompts.
+
+Copy the Contents of /etc/profile.d to /opt/protected
+Run the following command:
+sudo cp /etc/profile.d/* /opt/protected/
+
+Verify that the file is readable.
+cat /opt/protected/apps-bin-path.sh
+
+Re-encrypt /opt/protected and Verify that the Contents of the Directory Are Unreadable
+Unmount the file system.
+
+sudo umount /opt/protected
+
+Attempt to view the contents of one of the files in /opt/protected.
+cat /opt/protected/apps-bin-path.sh
 
 == 325.4 DNS and Cryptography ==
 === Working with DNS ===
