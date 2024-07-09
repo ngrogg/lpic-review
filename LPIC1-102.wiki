@@ -1196,10 +1196,43 @@ Finally, press q to quit the mail application.
 Conclusion
 All of the mail destined for root will be forwarded now to cloud_user. That was our job, and we got it done. Congratulations!
 
-TODO
 == Manage Printers and printing ==
 === The Common Unix Printing System (CUPS) ===
+CUPS
+http://localhost:631
+default URL for locally installed CUPS server
+Requires a root login to add or remove printers
+
+/etc/cups
+Directory that contains the config files for the CUPS print server daemon and printer settings.
+Preferable to use the web interface to manage the config files in the directory.
+
 === The Line Print Daemon ===
+lpd Commands
+lpstat
+Displays the status of CUPS server and configured printers and queues.
+
+lpadmin
+Admin's tool to add, modify, and delete printers
+
+lpinfo
+Display available printer devices and drivers that can be used.
+
+lpc
+Older BSD-style command that can be used to view information about installed printers.
+Status command will show the status of all installed printers.
+
+lpr
+Command sends a print job to the default printer.
+To specify a different printers use the -P switch, followed by the printer name.
+
+lpq
+Command displays the CUPS printer queue. Use the -a option to view all print queues.
+
+lprm
+Command will remove a print job from the print queue. A job ID must be specified.
+To remove all jobs pass a - to the command
+
 === Hands-On Lab: Working with the CUPS Print Server ===
 Install a PDF Printer
 
