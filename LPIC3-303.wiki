@@ -418,7 +418,57 @@ cat /opt/protected/apps-bin-path.sh
 
 == 325.4 DNS and Cryptography ==
 === Working with DNS ===
+Working with DNS
+Securing DNS with DNSSEC
+DNS is short for Domain Name System
+DNS is a hierarchical system used to resolve hostnames
+Starts with a root server that branches
+Resolves attempt to lookup hostnames against local forwarders if configured
+Resolvers will go directly to the root name server which delegates
+Zones and resource records
+DNS configurations are made up of zones and resource records (RRs)
+Consist of a type and a series of labels that make up domains, subdomains, hosts etc.
+
+EDNS proposed
+Extension for DNS
+Documented in RFC 2671
+Address backwards compatibility for older versions of DNS
+
+BIND is a popular implementation of a DNS server
+Primary config is /etc/named.conf
+Objectives on LPIC exam 303 cover securing DNS with BIND in particular
+
+Securing BIND
+Means of securing DNS
+TSIGs - a method of digitally signing data provided to a resolver or data sent in a zone transfer.
+DNS poisoning can occur without TSIGs
+Running a named server in a chroot jail
+Restrict access
+Configuration directives
+Allow query
+Recursion
+Prevent DNS from reaching out to other servers
+Allow Transfer
+What DNS servers are allowed to transfer zones
+
+RNDC stands for Remote Name server Daemon Control
+Allows for remote name server management
+Remote control for bind
+Secure with a key
+Must be secured using a secret key that is shared with the BIND server.
+
+BIND Configuration
+Directives:
+allow query
+recursion
+allow transfer
+
+DNS utilities
+dig
+New version called delv
+
 === Securing DNS with DNSSEC ===
+
 === Understanding DANE ===
 
 == 326.1 Host Hardening ==
