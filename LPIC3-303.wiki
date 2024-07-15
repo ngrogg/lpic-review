@@ -468,8 +468,57 @@ dig
 New version called delv
 
 === Securing DNS with DNSSEC ===
+What is DNSSEC?
+Domain Name System Security Extension
+DNSSEC guarantees the authenticity of Zone Transfers and RR lookups.
+Resource Record
+Security by digitally signing zone files to sensure they have not been altered or spoofed.
+
+Enabling DNSSEC
+Dnssec-enable and dnssec-validation in named.conf
+On by default
+
+Must create Zone Singing Keys (ZSKs), Key signing Keys (KSKs) and have your registration publish a Delegations Signer (DS) record for your domain
+
+Zone Signing Keys (ZSK)
+Signs a particular zone file.
+Generated using dnssec-keygen.
+Should be rotated on a monthly interval for optimal security
+Can be cronned
+
+Key signing keys (KSK)
+What authenticate your servers' ZSKs
+Created using dnssec-keygen but with -f KSK parameter
+
+Dnssec-signzone
+Generated key records are placed in a zone file
+dnssec-signzone creates a signed zone file for use with BIND.
+
+Chain of Trust
+KSKs are provided and published by the parent of a child zone
+This continues all the way to the root dns servers which have their KSK signed in a key signing ceremony
+
+Other commands to understand
+dnssec-settime - Manages the validity period of a given key
+dnssec-dsfromkey - Used to generate the DS RR for a given KSK
+Review the man pages
+
+DO and AD bits
+Contained in DNS queries and responses.
+DO stands for DNSSEC OK and indicates taht a client will understand a DNSSEC response.
+AD stands for Authenticated Data and is set when data returned by a server that is authenticated with DNSSEC
 
 === Understanding DANE ===
+DNS-Based Authentication of Named Entities
+Domain Name System Security Extension
+DNSSEC guarantees the authenticity of Zone Transfers and RR lookups.
+Digitally signing zone files to ensure they hve not been altered or spoofed.
+TLSA record
+A TLS A record
+\_port\_.protocol
+Note the port and protocol designation in the label
+Fully qualified domain name
+TLSA Record are not limited to HTTPS, replace with other ports to use with other services
 
 == 326.1 Host Hardening ==
 === Kernel Security Part 1 ===
