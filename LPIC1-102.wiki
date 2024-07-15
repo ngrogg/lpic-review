@@ -1319,10 +1319,81 @@ sudo cupsenable CUPS-PDF
 Verify that the CUPS-PDF printer is once again ready to accept new jobs.
 lpq
 
-TODO
 == Fundamentals of internet protocols ==
 === Networking Fundamentals ===
+Internet Protocol
+IP
+Address assigned to a maching so that other machines can communicate with each other
+IPv4 and IPv6
+four octets
+128 bit hexadecimal
+
+Transmission Control Protocol: TCP
+Provides mechanism used to send traffic
+Relies on send and acknowledgement system with it's data packets
+Each package includes an order number for order
+
+User Datagram Protocol: UDP
+Sends packet without verifying
+Less overhead
+
+Internet Control Message Protocol: ICMP
+Query a network device to check availability
+ping, traceroute
+
+IP Class Ranges
+RFC 1918
+Five ranges and how many hosts
+| Class | Range   | Number of Hosts         |
+| A     | 1-126   | 16,777,214              |
+| B     | 128-191 | 65,534                  |
+| C     | 192-223 | 254                     |
+| D     | 224-239 | Reserved for multicast  |
+| E     | 240-254 | Reserved for future use |
+
+Network Mask
+Defines a logical network (subnet) that indicatess a range of IP addresses
+Associated network and subnet mask
+CIDR
+Class A: 255.0.0.0/8
+Class B: 255.255.0.0/16
+Class C: 255.255.255.0/24
+
+Private IP Address Ranges
+Used for internal networks
+Not publicly routable, only routes in internal network
+| IP Address Range              | Number of Hosts | CIDR Notation  | Classful Description            |
+| 10.0.0.0 - 10.255.255.255     | 16,777,216      | 10.0.0.0/8     | Single class A network          |
+| 172.16.0.0 - 172.31.255.255   | 1,048,576       | 172.16.0.0/12  | 16 contiguous class B networks  |
+| 192.168.0.0 - 192.168.255.255 | 65,536          | 192.168.0.0/16 | 256 contiguous Class C networks |
+
+Network Gateway and Broadcast Address
+Where traffic goes that has no matching route or that is not intended for the local network
+
+Broadcast Address IP used to broadcast to all hosts on a particular network
+
 === Common Networking Services ===
+Look at /etc/services for a list of various network services 
+Know the following:
+* FTP
+* SSH
+* telnet
+* SMTP
+* DNS
+* HTTP
+* POP
+* NTP
+* NETBIOS (for Samba) 
+* IMAP
+* SNMP
+* SNMP Trap
+* LDAP
+* HTTPS
+* SMTPS
+* Syslog
+* LDAPS
+* IMAPS
+* POP3S
 
 TODO
 == Persistent Network Configuration ==
