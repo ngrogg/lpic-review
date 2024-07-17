@@ -522,9 +522,167 @@ TLSA Record are not limited to HTTPS, replace with other ports to use with other
 
 == 326.1 Host Hardening ==
 === Kernel Security Part 1 ===
+Kernel Security
+Securing Grub
+Disabling unnecessary software
+Smaller attack surface
+All running software is a security threat
+Disabling unused services is a good security practice
+Use systemctl and chkconfig to disable services
+
+systemctl used to interact with services
+chkconfig for enabling/disabling services
+mask maps service to null so it won't start
+Commonly disabled services atd, avahi-daemon, cups
+
+Limiting resource usage
+Limit system resources such as threads, open files and memory
+pam_limits.so module allows operaters to control how much of any one resource a user may access
+hard/soft links
+hard links can't be surpassed
+Use ulimit
+Most systems have it preloaded
+ulimit can be used to adjust limits at runtime
+Persistant limits at /etc/security/limits.conf
+
+Tuning kernel parameters
+sysctl command
+mapped to procfs filesystem
+Kernel parameters set persistently in /etc/sysctl.conf
+See kernel-docs for additional information
+
+Managing ASLR
+Address Space Layout Randomization
+Ensures every time a program loads it loads into a different place in memory
+
+NX Bit
+CPU feature
+Prevents execution from protected memory areas
+Exec-Shield software solution for CPUs that lack feature
+Still exists very few processors that use it
+
+ICMP security Settings
+Network security may be enhaqnced through kernel parameter tuning
+Disabling ICMP is a common security measure
+net.ipv4.icmp_echo_ignore_all to 1
+
 === Kernel Security Part 2 ===
+Systectl Review
+sysctl -a
+sysctl -ar SEARCH_PATTERN
+procfs
+
+Setting parameters
+sysctl -w PARAM=VALUE
+sysctl -w net.ipv4.icmp_echo_ignore_all=0
+echo "sysctl -w net.ipv4.icmp_echo_ignore_all=0" > /etc/sysctl.conf
+
+Persistent changes:
+/etc/sysctl.conf
+
+/proc/sys
+
+Chroot environments
+Fake root that is set for a specific user and process
+Root file system in regular file system
+Only the essential files necessary for a process to function
+SFTP and DNS are two common use cases
+
+An unprivileged user/process is unable to access outside a chroot environment
+Be mindful of hard links
+
+Virtualization
+Similar but more advanced
+Containerization is similar in nature
+Segments resources and processes from each other
+
 === Securing Grub ===
+Boot parameters present a security threat:
+Specific options may allow unauthorized access to a system
+
+Grub is capable of password protection for menu entries
+Grub 1 was only able to support passwords and not unique user accounts
+Grub 2 has more robust security
+
+Configuring users in
+/etc/grub.d/01_users:
+set superusers="USER"
+Password USER PASSWORD
+Password notsuper OTHERPASS
+
+Needs to be in cat section
+
+Configuring menu entries
+grep menuentry
+/boot/grub2/grub.cfg in
+/etc/grub.d/40_custom:
+menuentry "menu item" --usersnotsuper
+
+unrestricted line
+Change to --users
+Only superuser can boot
+
+--users USERNAME,USERNAME
+Other users can boot
+
+Now only those usernames can edit
+
+Building grub configuration:
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+Write to tmp first just in case it doesn't work
+grub2-mkconfig -o /temp/grub.cfg
+
 === Hands-On Lab: Linux Kernel Security ===
+Create a Text File for the Kernel Parameters
+Create a new text file called investigate.txt.
+touch /home/cloud_user/investigate.txt
+
+Install the Kernel Documentation
+Run the following command:
+sudo yum install kernel-doc
+
+Type y at the prompt.
+
+Find and Document the Value of the randomize_va_space Parameter
+Open the kernel.txt file of the sysctl documentation.
+vim /usr/share/doc/kernel-doc-3.10.0/Documentation/sysctl/kernel.txt
+
+Type /random to search the document for entries pertaining to address space randomization.
+Press Esc, and type :q to exit the vim text editor.
+Search for the term "randomize_va" using sysctl.
+sysctl -ar randomize_va
+
+Add the value of the parameter to the investigate.txt file.
+sysctl -ar randomize_va >> investigate.txt
+
+Find and Document the Values of All ICMP Kernel Parameters
+Search for the term "ICMP" using sysctl.
+sysctl -ar icmp
+
+Add the values of the ICMP parameters to the investigate.txt file.
+sysctl –ar icmp >> investigate.txt
+
+Temporarily Disable ICMP Using a Kernel Parameter
+Run the following command:
+sudo sysctl –w net.ipv4.icmp_echo_ignore_all=1
+
+Find and Document the Current Kernel Security Limits
+View the contents of /etc/security/limits.conf.
+vim /etc/security/limits.conf
+
+Press Esc, and type :q to exit the vim text editor.
+Write the contents of /etc/security/limits.conf to investigate.txt.
+cat /etc/security/limits.conf >> investigate.txt
+
+Locate the current security limits for cloud_user.
+ulimit -a
+
+Write the output of the ulimit -a command to investigate.txt.
+ulimit -a >> investigate.txt
+
+Review the contents of the investigate.txt file.
+vim investigate.txt
 
 == 326.2 Host Intrustion Detection ==
 === Threat Detection ===
