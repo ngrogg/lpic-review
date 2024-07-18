@@ -686,7 +686,113 @@ vim investigate.txt
 
 == 326.2 Host Intrustion Detection ==
 === Threat Detection ===
+Threat Detection Tools
+System Auditing with Auditd
+
+Important thing
+Post-incident tools.
+Tools only find something after an incident occurs
+
+Tools in question
+AIDE
+OpenSCAP
+Linux Malware Detect
+Rkhunter
+Chkrootkit
+
+Important for the test
+Know commands and options
+Understand broad concepts
+Know configuration directives
+
+AIDE
+Advanced Intrusion Detection Environment
+aide --init
+aide --check
+
+Config
+/etc/aide.conf
+
+Once Aide run and database stored, store database in offline location in case it's tampered with
+
+Note rules and what options are for (p: permissions etc.)
+Not everything you want watched in the same way
+
+Once rules are defined they can be applied to a filepath
+
+Filepaths can also be set to ignore
+
+Defaults should be okay
+
+Initial command once configuration complete
+aide --init
+
+Slow, will generate database. Run as root.
+
+Check against database with
+aide --check
+
+OpenSCAP
+SCAP
+Security Content Automation Protocol
+Community project started by Red Hat
+
+OpenSCAP
+An implementation of SCAP
+Vulnerability Assessment
+Security Compliance
+Be aware of what it is
+
 === Working with Maldet ===
+Linux Malware Detect
+LMD
+Maldet
+
+Commands:
+maldet -a
+maldet -e
+systemctl cat maldet
+
+Configuration
+/usr/local/maldet/conf.maldet
+/usr/local/maldet/monitor_paths
+
+Uses external signatures to look for threats
+inotify-tools package
+Realtime monitoring
+
+Clamav tool
+Not tested on
+Can be used with maldet
+
+Note monitor_paths and ignore_paths
+
+scan_clamscan
+Used to integrate clamscan
+
+quarantine options
+Option to quarantine file
+By default only alerts
+Set to 1 to alert file
+
+Directives to note
+How to scan,
+maldet -a /path/to/file
+
+Can use ? as a wildcard
+
+maldet -e to view reports
+
+Monitor mode
+maldet --monitor
+Real time monitoring via inotify-tools
+Performance hit
+
+Help
+Lists flags
+
+Help is closest to man page
+
 === Understanding Rootkits ===
 === System Auditing in Linux ===
 === Hands-On Lab: Working with the Audit Log ===
