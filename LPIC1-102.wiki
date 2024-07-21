@@ -1453,9 +1453,37 @@ route
 display the routing table and add and delete routs.
 Deprecated in favor of ip route
 
-TODO
 == Basic Network Troubleshooting ==
 === Testing Connectivity ===
+ping
+Used to test a systems ability to communicate with another network device
+Sends ICMP packets across the network
+
+ping6
+Same as ping but for IPv6
+
+traceroute
+Display a list of the hops a packet will traverse to get to a destination.
+Used to verify network routing and to look for breaks in network communication.
+
+traceroute6
+Same as traceroute but for IPv6
+
+tracepath
+Replacement for traceroute using UDP instead of ICMP
+
+tracepath6
+Same as tracepath but IPv6
+
+netstat
+Used to display network connections and their stat
+Can also be used to view routing table
+Deprecated
+
+ss
+Modern equivalent of netstat
+Does not show routing table
+
 === Hands-On Lab: Monitoring Network Access ===
 Introduction
 
@@ -1529,9 +1557,34 @@ Conclusion
 
 We did it. We've got all of the tools in place. There's a tool listening for traffic, and one logging it. We've done our job, and our development team can take things from here. Congratulations!
 
-TODO
 == Configure Client-Side DNS ==
 === The basics of DNS Resolution from Linux ===
+Local Configuration Files
+/etc/hosts
+Text file w/ localhost entry mapped to loopback addresses
+Both ipv6 and ipv6
+Can be used to map hostsnames to an IP address
+
+/etc/hostname
+Systems will use this for a computer's hostname
+hostnamectl writes to this file 
+
+/etc/resolv.conf
+Contains IP address of DNS name servers host will use for name resolution
+
+/etc/nsswitch.conf
+Used to determine the order in which name resolution occurs
+
+Querying hostnames
+host 
+Used to resolve domain names to IP addresses
+
+dig 
+used to query dns servers for paticular types of DNS records
+
+getent 
+Directyl queries /etc/nsswitch.conf and it's databases for information
+
 === Hands-On Lab: Testing DNS Resolution ===
 Testing DNS Resolution
 
