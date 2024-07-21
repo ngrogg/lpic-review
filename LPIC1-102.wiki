@@ -1567,7 +1567,7 @@ Can be used to map hostsnames to an IP address
 
 /etc/hostname
 Systems will use this for a computer's hostname
-hostnamectl writes to this file 
+hostnamectl writes to this file
 
 /etc/resolv.conf
 Contains IP address of DNS name servers host will use for name resolution
@@ -1576,13 +1576,13 @@ Contains IP address of DNS name servers host will use for name resolution
 Used to determine the order in which name resolution occurs
 
 Querying hostnames
-host 
+host
 Used to resolve domain names to IP addresses
 
-dig 
+dig
 used to query dns servers for paticular types of DNS records
 
-getent 
+getent
 Directyl queries /etc/nsswitch.conf and it's databases for information
 
 === Hands-On Lab: Testing DNS Resolution ===
@@ -1631,10 +1631,84 @@ host www.google.com
 
 Our system should be able to resolve an IP address for the domain name.
 
-TODO
 == Perform Security Administration Tasks ==
 === Determine the Current Security State of a System ===
+Who is logged in?
+who
+list the currently loggedin users
+
+w
+List logged in users and what processes they're running
+
+last
+Show a list of users who were logged in
+To find failed login attempts
+last -f /var/log/btmp
+
+^ Also check the secure or auth.log
+
+lsof
+Determine what files are currently opened
+Also network ports are considered files
+Opened network ports can be found with this command as well
+
+Enforce Proper Permissions and Limits
+
+find
+Command can be used to locate all files that have the SUID or SGID bit set
+
+find / -perm -u+s
+
+ulimit
+This command can be used to set limits on the amount of resources in a system that a user can utilize
+/etc/security/limits.conf
+
+chage
+Change the user's password expiration information
+
+passwd
+Set a user's password
+
+Granting Elevated Privileges
+/etc/sudoers
+Default config file for configuring users and/or groups that are granted elevated privileges
+Use visudo to edit
+
+sudo
+Run asa admin
+
+su
+Substitute user command
+Use - to assume a login shell of the user
+If no user provided root is assumed
+
 === Checking Local Network Security ===
+What is in use?
+
+lsof
+Determine what files are currently opened
+Also network ports are considered files
+Opened network ports can be found with this command as well
+
+lsof -i
+View open network ports
+
+fuser
+list all PIDs assigned to a particular file or network port
+
+Local Network Security
+netstat, ss
+
+use the following switches to view active connections
+t TCP
+u UDP
+n IP Addresses instead of hostnames
+a listening and non-listening sockets
+
+nmap
+Network MAP
+Scan a host for open ports and services
+
 === Hands-On Lab: Create New sudo Users ===
 Introduction
 
@@ -1696,10 +1770,32 @@ sudo cat /etc/sudoers.d/web_admin
 
 Since the cat command is not listed in the command alias group for WEB, gfreeman cannot use sudo to read this file.
 
-TODO
 == Set up Host Security ==
 === Securing Local Logins ===
+Keep Local Accounts Safe
+/etc/nologin
+File can be used to display a message on the console when someone attempts to login using the /sbin/nologin shell
+
+/etc/passwd
+Contains the main account configuration details of the users on the system
+
+/etc/shadow
+Files store the encrypted password and password age information for the users on the system
+
 === Securing Network Services ===
+Secure Network Services
+xinetd
+Super-daemon
+Controls access to various network services
+
+TCP Wrappers
+Functionality utilizes a hosts.allow and/or hosts.deny
+
+systemd.socket
+Socket file used in place of xinetd
+Allows for on-demand activation of network services
+TCP Wrappers can be used in conjunction with systemd socket units
+
 === Hands-On Lab: Host Security with TCP Wrappers and Systemd Sockets ===
 Introduction
 
@@ -1760,10 +1856,57 @@ ssh cloud_user@&lt;PUBLIC_IP&gt;
 
 Enter your password at the prompt.
 
-TODO
 == Securing Data with Encryption ==
 === GPG ===
+Gnu Privacy Guard
+
+gpg
+Used to generate, list, import, export and revoke gpg keys
+
+gpg --gen-key
+Start the process to generate a new gpg public key
+
+gpg --export
+Used to export a public gpg key
+
+gpg --import
+used to import another user's public key into your keyring
+
+gpg --list-keys
+List the gpg keys on your keyring
+
+gpg -e FILENAME
+Encrypt a file with your default gpg public key
+
+gpg FILE
+Decrypt a file from a user (provided you have their public key)
+
+~/.gnupg
+Hidden directory for GPG keyrings and configs
+
+rng-tools for entropy
+rngd
+
+Must be logged in as user to run gpg command
+No su etc.
+GPG agent has to use the full environment of the user
+
 === SSH ===
+Secure Shell
+ssh
+Secure Shell command
+
+ssh-copy-id
+Copy public key to another system and setup proper permissions for authorized_keys on the remote host
+
+ssh-agent
+Wrapper around an environment so that it can handle authentication for key files that use passphrases
+
+ssh-add
+Adds the passphrase to the ssh-agent
+
+ssh -x or -Y for x11 forwarding
+
 === Hands-On Lab: Encrypt a File using GPG ===
 Introduction
 
