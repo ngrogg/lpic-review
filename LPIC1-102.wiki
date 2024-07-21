@@ -1373,7 +1373,7 @@ Where traffic goes that has no matching route or that is not intended for the lo
 Broadcast Address IP used to broadcast to all hosts on a particular network
 
 === Common Networking Services ===
-Look at /etc/services for a list of various network services 
+Look at /etc/services for a list of various network services
 Know the following:
 * FTP
 * SSH
@@ -1383,7 +1383,7 @@ Know the following:
 * HTTP
 * POP
 * NTP
-* NETBIOS (for Samba) 
+* NETBIOS (for Samba)
 * IMAP
 * SNMP
 * SNMP Trap
@@ -1395,10 +1395,63 @@ Know the following:
 * IMAPS
 * POP3S
 
-TODO
 == Persistent Network Configuration ==
 === NetworkManager ===
+nmcli
+NetworkManager command line interface.
+Utility used for configuring network devices and their connection settings
+
+nmcli dev
+short for device
+Physical hardware such as a network card used to connect to a network
+
+nmcli con
+short for connection
+Contains the network configuration settings assigned to a particular device
+Assign IP address and DSN to a connection
+
+Network Device Naming
+en ethernet
+wl wireless
+eno1 for ONBOARD devices index provided by BIOS or firmware
+ens1 for PCI Express hotplug SLOTS, index provided by BIOS or firmware
+enp2s0 for devices in specific PHYSICAL locations
+p bus
+s slot
+enx6a0002f08820 device names including MAC addresses. Not used by default
+eth0 older traditional naming
+No two mac addresses should be the same
+
+ip
+modify IP address settings, route settings and how interface statistics
+From the iproute2 project
+
+ip addr show
+display ip address information
+
+ip route show
+display routing table
+
+ip -s addr show statistics on configured interfaces
+
+hostnamectl
+Command used to persistently configure the computer's host name.
+
 === Legacy Networking Tools ===
+net-tools
+ifconfig
+previous networking utilty
+deprecated in favor of ip
+
+ifdown
+bring down a specific network interface
+
+ifup
+bring up a specific network interface
+
+route
+display the routing table and add and delete routs.
+Deprecated in favor of ip route
 
 TODO
 == Basic Network Troubleshooting ==
