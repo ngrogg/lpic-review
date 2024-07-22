@@ -794,8 +794,94 @@ Lists flags
 Help is closest to man page
 
 === Understanding Rootkits ===
+Rootkit detection
+Chkrootkit
+chkrootkit -q
+
+Rkhunter
+rkhunter -c --cronjob -rwo
+/var/log/rkhunter/rkhunter.log
+
+/etc/rkhunter.conf
+
+rkhunter --update
+Cron that
+
+AIDE may also detect rootkits
+Kernel modules are popular places to hide rootkits
+
+Only run commands as root if you need to
+
 === System Auditing in Linux ===
+Auditing vs. Logging
+Logs vary by system and software
+Audit runs at the OS level
+
+Auditd
+Built into RHEL distros
+Installable on DEB distros
+
+Customizable
+
+Working with Auditd
+Commands
+ausearch
+aureport
+auditctl
+
+Configuration
+/etc/audit/auditd.conf
+/etc/audit/rules.d
+/etc/audit/audit.rules
+
+Files
+/var/log/audit.log
+/etc/pam.d/system-auth
+
 === Hands-On Lab: Working with the Audit Log ===
+Create the Audit Rules
+
+Create an audit rule to watch /etc/passwd for reads.
+sudo auditctl -w /etc/passwd -p w -k userwatch
+
+Create an audit rule to watch /etc/sudoers/ for reads and writes.
+sudo auditctl -w /etc/sudoers -p rw -k sudowatch
+
+Create an audit rule to watch /sbin/visudo for executions.
+sudo auditctl -w /sbin/visudo -p x -k sudowatch
+
+Verify that the audit rules were successfully created.
+sudo auditctl -l
+
+Generate an Audit Rule List in a Text File
+
+Output the contents of the audit rule list to a file called rules.txt.
+sudo auditctl -l > /home/cloud_user/rules.txt
+
+Generate Logs
+
+Create a new user.
+sudo useradd bob
+
+Run the visudo command.
+sudo visudo
+
+Press Esc, and type :q to exit the vim text editor.
+
+Generate the Text File Reports
+
+Generate the userwatch.txt report in /home/cloud_user.
+sudo ausearch -k userwatch > /home/cloud_user/userwatch.txt
+
+Verify that this was successful.
+less /home/cloud_user/userwatch.txt
+
+Type q to exit the less screen.
+Generate the sudowatch.txt report in /home/cloud_user.
+sudo ausearch -k sudowatch > /home/cloud_user/sudowatch.txt
+
+Verify that this was successful.
+less /home/cloud_user/sudowatch.txt
 
 == 326.3 User Management and Authentication ==
 === Linux Login Essentials ===
