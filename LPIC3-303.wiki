@@ -885,7 +885,86 @@ less /home/cloud_user/sudowatch.txt
 
 == 326.3 User Management and Authentication ==
 === Linux Login Essentials ===
+Linux Login Basics
+PAM Concepts and Configuration
+Kerberos
+Understanding SSSD
+
+/etc/login.defs:
+Used to be main login configuration
+Replaced by PAM (Pluggable Authentication Modules)
+
+Still used,
+MAIL_DIR
+UID and GID settings
+UMASK
+
+Typically >500 system users
+
+chage
+Requires root for most functionality
+User must be in /etc/shadow
+Local user
+
+-E yyyy-mm-dd login
+Set expiration
+
+-I days login
+Set number of days of inactivity to expire user
+
+-W days login
+How many days for password expiration
+
+-1 may be used to disable options
+
+NSS
+Name Service Switch
+Calls for info from a system database to a back-end service
+Know contents of /etc/nsswitch.conf
+
+/etc/nsswitch.conf
+Databases
+passwd
+shadow
+group
+hosts
+
+Services
+files
+sss
+dns
+
+passwd: files sss
+/etc/passwd
+sss
+User makes an action
+Checks file
+If it doesn't find it it'll query sss service
+Follows order of services listed
+
+hosts: files dns myhostname
+Check /etc/hosts first then dns
+
+If using something like LDAP most goes through SSSD
+
 === PAM Concepts ===
+Pluggable Authentication Module
+Modules handling unique function for authentication and authorization
+
+Four groups
+Auth: Used for authentications
+Account: Deals with account work
+Password: Work with passwords
+Session: Interact with user session properties
+
+PAM
+Configuration:
+/etc/pam.d/*
+
+Modules:
+pam_tally2.so
+pam_cracklib.so
+
 === Kerberos Concepts ===
 === Understanding SSSD ===
 === Hands-On Lab: Configuring PAM ===
