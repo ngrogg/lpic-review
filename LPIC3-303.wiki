@@ -966,9 +966,158 @@ pam_tally2.so
 pam_cracklib.so
 
 === Kerberos Concepts ===
+Kerberos
+Terms:
+Key Distribution Center (KDC)
+Realm
+Principal
+Ticket
+TGT (Ticket Granting Ticket)
+TGS (Ticket Granting Server)
+
+Important Files:
+/etc/krb5.conf
+
+Commands:
+kinit
+Create Kerberos session
+kinit USER@example.com
+
+klist
+See service tickets currently active
+
+kdestroy
+Eliminate current service tickets
+Useful if ID not required anymore
+
+Everything is a principal
+
+Process
+1. Send principal ID and credentials (TGT Request from user to KDC)
+2. Lookup and verify Principal (KDC -> Principal DB)
+3. Return TGT protected by principal's user key (Principal DB -> User)
+4. Store decrypted TGT in cache (User -> Credential Cache)
+5. Check TGT from Cache (App -> Cache)
+
 === Understanding SSSD ===
+System Security Services Daemon
+Set of daemons to manage access to remote directories and authentication mechanisms
+
+Key integrations
+Active Directory
+FreeIPA
+LDAP
+Kerberos
+Local Domain through SSS
+NSS
+pam_sss.so
+
+Configurations
+/etc/sssd.conf
+
+Utilities
+sss_useradd
+sss_userdel
+sss_usermod
+sss_groupadd
+sss_cache
+sss_obfuscate
+
+They have a man page
+Work similar to actual commands, just use SSSD backend
+
+man sssd.conf
+
+Set mode on sssd.conf file
+cp /usr/share/doc/sssd-common-#/sssd-example.con /etc/sssd/sssd.conf
+
+chmod 600 /etc/sssd/sssd.conf
+
+Required for sssd to use file
+
+man pam_sss
+
 === Hands-On Lab: Configuring PAM ===
+Install pam_cracklib
+
+Escalate permissions to root.
+sudo su -
+
+Install the necessary libraries for pam_cracklib.
+apt-get install libpam-cracklib
+
+Type y at the prompt.
+
+Configure pam_cracklib
+Install the vim text editor.
+apt-get install vim
+
+Edit /etc/pam.d/common-password.
+vim /etc/pam.d/common-password
+
+Locate the password settings within the file.
+Change the existing pam_cracklib password configuration to the following:
+password   requisite    pam_cracklib   retry=3 minlen=10
+
+Press Esc, then type :wq to save our changes and exit the vim text editor.
+Enable and Configure pam_tally2
+
+Edit /etc/pam.d/common-auth.
+vim /etc/pam.d/common-auth
+
+Create a new line above the default block.
+Add the following text to create a pam_tally2 configuration:
+auth     required       pam_tally2.so deny=2 unlock_time=600
+
+Press Esc, then type :wq to save our changes and exit the vim text editor.
+
 === Hands-On Lab: Configuring SSSD ===
+Install SSSD
+
+Escalate privileges to root.
+sudo su -
+
+Install the necessary SSSD packages.
+yum install -y sssd sssd-tools
+
+Configure SSSD
+
+Copy the base configuration file from /usr/share/doc/. (Remember to replace <CURRENT_VERSION> with the actual current version number.)
+sudo cp /usr/share/doc/sssd-common-&lt;CURRENT_VERSION&gt;/sssd-example.conf /etc/sssd/sssd.conf && sudo chmod 0600 /etc/sssd/sssd.conf
+
+Edit the /etc/sssd/sssd.conf file.
+
+vim /etc/sssd/sssd.conf
+
+Under the line "; domains = LDAP", add the following text:
+domains = LOCAL
+
+[domain/LOCAL]
+id_provider = local
+auth_provider = local
+min_id = 2000
+
+Press Esc, then type :wq to exit the vim text editor.
+Start the SSSD service.
+systemctl start sssd
+
+Create and Configure a New User and Group
+Add the user jsmith.
+sss_useradd jsmith
+
+Create the sis group.
+sss_groupadd sis
+
+Add sis as a supplemental group to jsmith.
+sss_usermod -a sis jsmith
+
+Verify That the New User Does Not Exist in /etc/passwd
+Search /etc/passwd for jsmith.
+
+grep jsmith /etc/passwd
+
+Verify that the user exists in the sis group.
+id jsmith
 
 == 326.4 FreeIPA Installation and Samba Integration ==
 === Overview of FreeIPA ===
