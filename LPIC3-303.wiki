@@ -1121,9 +1121,115 @@ id jsmith
 
 == 326.4 FreeIPA Installation and Samba Integration ==
 === Overview of FreeIPA ===
+FreeIPA is a suite of tools that provide ID and authentication services
+Samba is a Windows to Linux cross platform tool
+Not a drop in replacement for Active Directory
+
+Provide user directory via LDAP
+Provide Kerberos Authentication
+Maintain a central sudo rule set
+Keep autofs configurations
+Hold SELinux user mapping data
+
+The FreeIPA Suite:
+389 Directory Server LDAP core piece
+MIT Kerberos
+DNS (BIND)
+NTP Network Time Protocol
+Dogtag Cert management service
+
+Certmonger daemon monitors certs for impending expiration
+Refersh soon to be expired certs
+
+ipa-getcert list
+ipa-getcert request -f /path/to/server.crt -k /path/to/private.key -r
+
+By default certmonger works with the CA configured for the IPA noted in /etc/ipa/default.conf
+
+Prereqs
+Local DNS configuration
+IPA server must have a static hostname in /etc/hosts that matches the system hostname and is in the planned DNS domain
+
+Installtion utilty verifies that
+
+Firewall considerations
+Number of ports that need open:
+* HTTP/S TCP (80,443)
+* Kerberos TCP (88,464) UDP (88,464)
+* DNS UDP 53
+* NTP UDP 123
+* LDAP TCP (389,636)
+
+There is a web interface
+
 === Installing and Configuring FreeIPA ===
+Packages
+ipa-server
+ipa-server-trust-ad
+
+Commands
+ipa-server-install
+Guided
+
+ipa-replica-install
+
+ipa-replica-prepare
+Create a replica file from an existing server
+Also guided
+
+ipa-replica-manage
+ip-adtrust-install
+Setting up trust connections to an Active Directory
+Takes Options, also guided
+
 === Working with FreeIPA ===
+Packages
+ipa-client
+
+Commands
+ipa-client-install
+ip user-add USER --first FIRSTNAME --last LAST
+ipa group-add staff --desc "DESCRIPTION"
+ipa help
+
 === Hands-On Lab: Working with FreeIPA ===
+Configure the Host File and Name
+
+Escalate privileges to root.
+sudo su -
+
+Edit the /etc/hosts file.
+vim /etc/hosts
+
+Scroll down to a blank line, and add the following:
+10.0.1.100   ipa.example.com
+
+Press Esc, then type :wq to exit the vim text editor.
+Set the host name.
+hostnamectl set-hostname ipa.example.com
+
+Configure the Base IPA Domain
+
+Create the base IPA domain.
+ipa-server-install
+
+Press Enter at the next four prompts.
+Enter your cloud_user password at the next four prompts.
+Type yes at the prompt.
+Wait a few minutes for the installation to finish.
+
+Create and Verify a New Session
+
+Create a new session for the admin user.
+kinit admin
+
+Enter your cloud_user password at the prompt.
+Verify that this was successful.
+klist
+
+Create a New User in Directory Services
+Create the user jsmith with the first name john and last name smith in directory services.
+ipa user-add jsmith --first john --last smith
 
 == 327.1 Discretionary Access Control ==
 === Basic System Permissions ===
