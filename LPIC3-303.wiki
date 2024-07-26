@@ -1233,9 +1233,110 @@ ipa user-add jsmith --first john --last smith
 
 == 327.1 Discretionary Access Control ==
 === Basic System Permissions ===
+Basic System Permission - DAC
+
+Discretionary Access Control (DAC)
+Commands
+chown
+chmod
+
+Permissions
+read/write/execute
+SUID
+Allows files to be executed with permission of owner
+Leading numerical bit
+4644
+u+x will remove SUID
+Typically circumvented
+Not very secure
+
+SGID
+Also represented by an S, uses a 2
+Executed under group
+chmod g+s
+
+Inherit perms
+
+Sticky Bit
+Prevents users from deleting files unless they own the file
+
 === Extended Attributes ===
+The Concept:
+xattr
+if the libattr feature is enabled in the kernel configuration
+
+Regular file may have a list of extended attributes denoted by name
+
+SELinux and ACL use
+
+Xattr namespaces
+User
+Trusted
+Security, set aside for SELinux specifically
+System, used by kernel
+
+Must be in one of the four
+Not a lot of use in day to day
+
+Xattr
+Getting xattrs
+getfattr
+-n NAME
+-m PATTERN
+
+Setting xattrs
+setfattr
+-n NAME
+-v VALUE
+-x NAME
+
 === Using ACLs ===
+Access Control Lists
+Commands:
+setfacl -m u:USER:r FILE
+setfacl -m m::rx FILE
+getfacl filename
+
+Add rules to ACL list to allow other users to interact with the file
+Mask sets overarching mask on ACL list
+Revokes write access from all users/groups
+
 === Hands-On Lab: Managing File Attributes and Permissions ===
+Grant Access to the Directory
+
+Change to the opt directory.
+cd /opt
+
+Next, open all of the directory's files and permissions with the following command:
+ls -la
+
+Let's try to access the myapp directory. Run the following command:
+cd myapp/
+
+We get a "Permission denied" message because permissions are currently restricted to the tkirk user. Let's change that now. Enter the following command:
+sudo chmod 777 myapp
+
+Then, enter your password when prompted.
+
+Reopen the directory files and permissions using the ls -la command. Now let's try to open the directory again.
+cd myapp
+
+We can now open the directory.
+Change the Directory Permissions
+
+The next step is to give all users read and write permissions for this directory. However, we also need to make sure no one can execute anything. Let's start by removing execute permissions. Enter the following command:
+sudo chmod -f -x -R *
+
+Now let's give everyone read and write permissions. Note that this would also remove the execute permissions we did in the previous step, but we wanted to show how to do that explicitly.
+sudo chmod 666 -f -R *
+
+List the directory files and permissions again.
+ls -la
+
+We can see that everyone now has read and write permissions.
+
+Note: For users to be able to navigate into directories, the directories must be set as executable. You can do this with:
+sudo find /opt/myapp -type d -exec chmod o+x {} \;
 
 == 327.2 Mandatory Access Control ==
 === Understanding MAC ===
