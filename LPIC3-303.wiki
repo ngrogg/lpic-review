@@ -1340,9 +1340,191 @@ sudo find /opt/myapp -type d -exec chmod o+x {} \;
 
 == 327.2 Mandatory Access Control ==
 === Understanding MAC ===
+MAC
+Mandatory Access Control
+SELinux
+MAC Alternatives
+
+MAC access is based on context and not ownership
+
+Class of objects or users
+
+MAC users roles and type enforcement to allow access to users who are authorized to use resources of a specific type.
+
+Standard Linux perms are checked first
+Standard perms can override SELinux
+
+MAC is generally implemented by means of a kernel module and through use of extended attributes
+
+MAC Systems
+SELinux
+AppArmor
+Smack
+
+
+
 === SELinux ===
+SELinux
+Commands
+semanage
+setsebool, getsebool
+restorecon
+newrole
+sealert
+
+Files
+/etc/selinux/config
+
+Will need to relabel files if SELinux disabled and re-enabled
+
+getenforce
+Is selinux enforcing?
+
+setenforce 0/1
+Enable or disable selinux enforcement
+
+getsebool
+List booleans
+
+setsebool
+Set booleans
+
+restorecon
+Restores default SELinux security contexts
+
+fixfiles
+Fix file SELinux security contexts
+
+newrole
+Run a shell with a new SELinux role
+
+Rarely done outside specialized environments
+
+Test without setting
+
+semanage
+Basic interface to SELinux
+Run subcommands
+Most common commands are fcontext and boolean
+
+semanage-fcontext
+Man page for extra commands like so
+
+Logged in Audit log by default
+sealert for reading logs
+sealert -a
+Analyze a log file
+
+A lot of issues can be fixed with restorecon
+
+audit2allow
+Generate SELinux makes policy allow/dontaudit rules from logs of denied operations
+
+audit2why, alias for audit2allow -w
+
 === AppArmor and Smack: MAC alternatives ===
+AppArmor
+Less cumbersome that SELinux
+Assigning types to filepaths rather than inodes
+Links
+Two modes: Enforcement and complain
+Enforce/permissive
+
+aa-genprof and aa-logprof used to craft policies
+
+Not managed with extended attributes
+
+Smack
+Must be compiled into the kernel
+Uses extended file attributes for label assignment
+-Z flag like SELinux
+Displays attribute information
+chsmack command may be used to query and set label information
+
+Shell script that works with extended attributes
+Tizen is the only distribution that implements smack.
+
 === Hands-On Lab: Troubleshooting SELinux ===
+Troubleshooting SELinux
+
+Introduction
+
+Mandatory access control (MAC) is an essential element to modern system security.
+SELinux is a common implementation of MAC that must be well understood by engineers in order to
+incorporate the most ideal security practices into production systems.
+This exercise delves into a common occurrence relating to MAC; troubleshooting a system that is experiencing errors as a consequence of SELinux.
+
+The website is down! The primary company web page is not presenting correctly, and the sales team is looking to you to fix it.
+A new junior security engineer was asking about SELinux and the web server earlier in the day.
+Checking out the www server's SELinux configuration may be a good place to start looking.
+Verify the error by attempting to access localhost:80/index.html on the www server and correct any issues.
+
+Summary tasks list:
+
+Verify there is an error by trying to access localhost:80/index.html using curl on the www host and check the audit log using sealert.
+Direct the output from sealert to /home/cloud_user/seinfo.txt.
+Examine /home/cloud_user/seinfo.txt to figure out what is wrong and fix the error regarding /var/www/html/index.html.
+Restart httpd to check for other possible issues and correct any issues you might find.
+Confirm localhost:80/index.html loads correctly with curl on the www host.
+
+Solution
+
+Start by logging in to the lab server using the credentials provided on the hands-on lab page:
+
+ssh cloud_user@PUBLIC_IP_ADDRESS
+
+Verify there is an error
+Verify there is an error by trying to access localhost:80/index.html using curl on the www host:
+curl localhost:80/index.html
+
+Check the audit log using sealert and direct the output from sealert to /home/cloud_user/seinfo.txt:
+sudo sealert -a /var/log/audit/audit.log > /home/cloud_user/seinfo.txt
+
+Figure out what is wrong and fix the error
+Reviewing the seinfo.txt file should indicate the context for /var/www/html/index.html is incorrect.
+sudo less /home/cloud_user/seinfo.txt
+
+At the bottom of the file, we should see the SELinux alert, as well as a suggested way to fix the issue.
+Fix the issue:
+sudo /sbin/restorecon -v /var/www/html/index.html
+
+Verify that the issue is resolved:
+curl localhost:80/index.html
+
+Check for other possible issues and correct any issues you might find
+Restart httpd to check for other possible issues and correct any issues you might find.
+
+Restart Apache:
+sudo systemctl restart httpd
+
+Note: httpd should fail to restart.
+
+Based on journalctl --xe (or by re-examining the audit log with sealert), you will see the file context is incorrect on /etc/httpd/conf/httpd.conf.
+
+journalctl -xe
+
+We are looking for the httpd: Could not open configuration file... line.
+Verify the SELinux context on /etc/httpd/conf/httpd.conf:
+ls -lZ /etc/httpd/conf/httpd.conf
+
+The user_home_dir_t context is set on this file, which is not correct.
+Run restorecon to fix the context on httpd.conf:
+sudo /sbin/restorecon /etc/httpd/conf/httpd.conf
+
+Verify the SELinux context was updated:
+ls -lZ /etc/httpd/conf/httpd.conf
+
+The context has been correctly set to httpd_config_t.
+
+Restart Apache again and the service should be restored.
+sudo systemctl start httpd
+
+Confirm the error is resolved
+Confirm localhost:80/index.html loads correctly with curl on the www host.
+curl localhost:80/index.html
+
+Conclusion
+Congratulations, you've completed this hands-on lab!
 
 == 327.3 Network File Systems ==
 === NFSv4 Improvements ===
