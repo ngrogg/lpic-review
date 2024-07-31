@@ -1528,10 +1528,126 @@ Congratulations, you've completed this hands-on lab!
 
 == 327.3 Network File Systems ==
 === NFSv4 Improvements ===
+Access Security
+Kerberos Authentication built in
+Requires use of additional services to run and tap into GSS (Generic Security Services) API
+GSS API uses LIPKEY and SPKM
+Public key authentication methods
+
+Pseudo File System
+Mount exports via parent directory
+
+Port Mapper not required
+Uses TCP and eliminates the need for port mapper
+
 === NFS in Practice ===
+Packages
+nfs
+nfs-utils
+
+exports man page
+sec=
+Allow for kerberos authentication
+
+root_squash, no_root_squash
+Map any requests from UID/gid 0 to nobody uid/gid
+
+no_root_squash allows root behaviour
+
+Examples at bottom of man page
+
+nfs-server runs services
+
+Files:
+/etc/exports
+/etc/idmapd.conf
+
+man idmapd.conf
+Conf file for libnfsidmap
+Bottom of man page has example
+
+Commands:
+showmount -e
+
 === NFS4 ACLs ===
+nfs4_setfacl
+nfs4_getfacl
+
+nfs4-acl-tools
+
+man nfs4_acl
+man nfs4_setfacl
+
 === CIFS Configuration ===
+Samba
+Popular software suite designed for inter-operation with Windows
+smbd and nmbd
+CIFS maps Windows logins to Linux logins and is part of the Samba suite
+
+Winbind
+Service that allows CIFS to integrate with an AD domain.
+Run winbind daemon
+Integrate with NSS via the windbing service
+pam_winbind
+
+CIFS
+Commands
+getcifsacl
+setcifsacl
+mount.cifs
+
+Files
+/etc/samba/smb.conf
+
+getcifsacl /path/to/mount
+Prefixes for entries
+Owner, group etc.
+Also returns ACL info
+
+man setcifsacl
+man mount.cifs
+
 === Hands-On Lab: Exporting an NFSv4 Volume with ACLs ===
+Configure a New NSF Export
+
+Escalate privileges to root.
+sudo su -
+
+Edit the /etc/exports file.
+vim /etc/exports
+
+Add the following line to the file:
+/nfs/ &ast;(rw,acl,no_root_squash)
+
+Press Esc, then typw :wq to exit the vim text editor.
+Restart the NFS server.
+systemctl restart nfs-server
+
+Test the New Export
+Mount localhost:/nfs to /mnt on the local system.
+mount -t nfs localhost:/nfs /mnt
+
+Verify that this was successful.
+mount
+
+Give the User alice Read-Write Access
+List the contents of the /mnt directory.
+ll /mnt
+
+Create an ACL on mnt/nsftestfile that gives alice the appropriate permissions.
+nfs4_setfacl -a A::alice@localdomain:RW /mnt/file
+
+Give the User bob Read and Execute Permissions
+Create an ACL on mnt/nsftestfile that gives bob the appropriate permissions.
+nfs4_setfacl -a A::bob@localdomain:RX /mnt/file
+
+Give Everyone Read Access
+Create an ACL on /mnt/nfstestfile that gives everyone the appropriate permissions.
+nfs4_setfacl -a A::EVERYONE@:R /mnt/nfstestfile
+
+Verify that all permissions have been configured properly.
+nfs4_getfacl /mnt/nfstestfile
+Run id <USER_NAME> for each user to verify the user IDs in each access control entry.
 
 == 328.1 Network Hardening ==
 === Configuring FreeRADIUS ===
