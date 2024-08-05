@@ -1651,9 +1651,140 @@ Run id <USER_NAME> for each user to verify the user IDs in each access control e
 
 == 328.1 Network Hardening ==
 === Configuring FreeRADIUS ===
+Freeradius
+Network utilities
+Network threats
+
+Packages
+Freeradius
+Remote Authentication Dial In User Service
+Authentication for network nodes
+
+Files
+/etc/raddb/radiusd.conf
+/etc/raddb/*
+
+/etc/raddb/clients.conf
+Network clients
+Two pieces
+Name and address
+client private-network-1 {
+ipaddr =IP
+secret =SECRET
+}
+
+Commands (all have man pages)
+radmin
+Key configuration tool
+Sub command w/ flags
+
+radtest
+Test connection to server
+Wrapper around radclient
+Used to interact with radius server
+
+radwho
+radlast
+Analgous to who/last commands but for radius
+
 === Analyzing Network Traffic ===
+Wireshark
+GUI tool that can perform packet captures
+Provides filtering capability
+tshark CLI utility
+Be familiar with filters
+
+tcpdump
+CLI utility for capturing network traffic
+Capable of filter
+Both use pcap library
+
+Commands (Both have man pages)
+tshark
+tcpdump
+
+tshark -Y http -Tfields
+
+man pcap-filter
+dst destination
+src source
+dst portrange
+
+Filters:
+host IP
+port PORT
+prtrange PORT-PORT
+tcp portrange PORT-PORT
+
 === Network Utilities and Threats ===
+ndpmon
+Neighbor Discovery Protocol Monitor
+Used for monitoring ICMPv6 packets
+Writes output to syslog
+
+nmap
+Network Mapper tool
+Capable of doing various scans against target networks
+Be careful running nmap against networks you do not own
+
+nmap.scanme.nmap.org
+
+Commands:
+nmap
+
+options
+-sS
+s scan
+S type of scan
+TCP Syn/connect() scan
+
+-T#
+1-5
+Faster scans, less thorough
+Higher = faster
+
+-sN/-sF/-sX
+TCP Null, FIN and Xmas scan
+
+Rogue Router Advertisements
+IPv6 networks where malicious router advertisements may be used to hijack traffic on unsecured networks
+Can be mitigated by adjusting kernel to not accept router advertisements:
+/proc/sys/net/ipv6/conf/<interface>/forwarding
+/proc/sys/net/ipv6/conf/<interface>/accept_ra
+Turn off on all interfaces
+
+Rouge DHCP Messages
+Best handled at switch level
+DHCP traffice should be restricted to solely the switch port running the DHCP server that is trusted.
+This is done using DHCP snooping
+
 === Hands-On Lab: Packet Capture and Analysis ===
+Use a tshark capture filter to collect TCP traffic on port 80.
+
+Use a tshark capture filter to collect TCP traffic on port 80. Store the capture command output in /root/http_out.
+tshark -f "tcp port 80" -V -R http > http_out
+
+In another SSH session, run curl www.exapmle.com/index.html during the capture.
+curl www.example.com/index.html
+Note: curl may produce output but it does not need to be recorded.
+
+Use a tshark display filter to collect HTTP traffic and print only HTTP response codes
+Use a tshark display filter to collect HTTP traffic and print only HTTP response codes. Store the capture command output in /root/http_response.
+tshark -Y http -Tfields -e http.response.code > http_resopnse
+
+In a separate SSH session, run curl www.example.com/index.html and then curl www.example.com/error.html during the capture:
+curl www.example.com/index.html
+curl www.example.com/error.html
+Note: curl may produce output but it does not need to be recorded.
+
+Use a tshark capture filter that prints the IP address of hosts sending traffic to the test workstation on TCP port 22.
+Use a tshark capture filter that prints the IP address of hosts sending traffic to the test workstation on TCP port 22. Observe any IP addresses printed after several seconds.
+tshark -f "tcp src port 22" -Tfields -e ip.dst
+
+Add the IP address(es) to /root/ssh_ip in a newline-delimited format.
+
+Conclusion
+Congratulations — you've completed this hands-on lab!
 
 == 328.2 Network Intrustion Detection ==
 === Network Monitoring ===
