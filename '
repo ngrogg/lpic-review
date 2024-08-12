@@ -1822,60 +1822,13 @@ daq
 Files:
 /etc/snort/*
 snort.conf base configuration
-Defined variables
-Home, external, dns
-
-Variables can be referenced using a dollar sign like a BASH variable
-Ports [80,81,443, etc.]
-
-!inverse
-Exclude a port or IP
-
-rules/
-Where custom rules are defined
-community-rules
-Also have a paid rules available
-
-File format
-NAME.rules
-Rule header
-alert tcp $EXTERNAL_NET $FILE_DATA_PORTS -> $HOME_NET any
-
-Note BASH vars from snort.conf
+Defined variables 
 
 Commands:
 snort
 snort-stat
 
-man snort
-Without parameters snort functions like tcpdump
--D daemon mode
-Actively monitor traffic
-
-snort-stat
-Removed from newer versions
-Read syslog
-Port scan statistics
-
 === OpenVAS Overview ===
-OpenVAS and NASL
-Commands:
-openvas-mkcert
-man openvas-mkcert
--q make a cert without asking questions
--f force overwrite existing cert
-
-openvas-nvt-sync
-Have to keep vulnerability definitions up to date
-
-Files:
-/etc/openvas/openvasd.conf
-Uses certificates
-Two-way SSL
-Clients also have to have the cert
-
-Be aware of daemon
-Keep NVTs up to date
 
 == 328.3 Packet filtering ==
 === Firewall Concepts ===
