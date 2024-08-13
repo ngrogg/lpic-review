@@ -1879,9 +1879,169 @@ Keep NVTs up to date
 
 == 328.3 Packet filtering ==
 === Firewall Concepts ===
+Firewall Review
+Advanced Firewall Concepts
+Nftables
+
+Firewall Review
+Files
+/etc/sysconfig/iptables
+Where daemon looks by default for rules
+
+Commands:
+iptables
+Create, delete and rearrange rules
+
+ip6tables
+Same but for ipv6
+
+iptables-save
+Write rules to file
+Can overwrite /etc/sysconfig/iptables
+iptables reads for rules
+
+iptables-restore
+Load in rules
+
+Works with netfilter
+tables and each table can have a number of chains
+Chains made up of rules
+
+filter
+Default table
+Input, forward and output chains
+
+nat
+mangle
+raw
+security
+
+iptables -t table
+Defaults to filter
+
 === Advanced Firewall Concepts ===
+IP Sets
+Depending on the type of the set an IP set may store:
+IP 4 or 6 addresses
+TCP/UDP port numbers
+IP and Mac address pairs
+IP address and port number pairs
+the ipset command is used to create and work with IP sets
+netfilter is able to use the IP Sets
+
+IP Sets
+Files
+/etc/sysconfig/ipset
+
+Commands
+ipset create
+ipset create  RULE hash:OPTIONS
+
+ipset add
+ipset add RULE IP
+
+ipset save
+ipset list
+
+Won't survive a reboot
+
+Firewall DMZ
+Provides additional security for a network
+It is a subnet that is separate from a general LAN
+May be accessed by an external network
+Where services and hosts that require a public face are located on a network
+Typically the internal LAN is firewalled off from external network access
+
+Between your network and the internet at large
+
+Connection Tracking
+Used so that the firewall may track a connection state
+conntrackd daemon does the tracking
+
+network address translation
+Used to load balance service or to translate external to internal addresses
+Handled by firewalls and/or routers
+Uses nat tables in iptables and the OUTPUT, PREROUTING and POSTROUTING chains
+
+Network address translation
+Table
+nat
+
+Chains
+OUTPUT
+PREROUTING
+POSTROUTING
+
+man iptables-extensions
+
 === Ebtables and Nftables ===
+Ebtables
+Used to insert and filter Ethernet frames
+Mostly analogous to the iptables command except it works with ethernet frames
+Default chains:
+filter
+broute
+nat
+
+Specific options to ebtables
+-Ln
+List line numbers when printing a rule set
+-Lc
+List pack and byte counters with each rule
+
+Nftables
+Alternative to iptables
+Simpler interface to netfilter
+nft command
+May use iptables rules with nftables
+Only brief familiarity required for the exam
+
 === Hands-On Lab: Working with IP Sets and iptables ===
+Create a New IP Set Called clienthosts
+
+Become root user:
+sudo su -
+
+Create a new IP set:
+ipset create clienthosts hash:ip,port
+
+Add IP port combinations:
+ipset add clienthosts 10.0.1.100,80
+ipset add clienthosts 10.0.1.200,80
+
+Save the configuration so it will persist a reboot:
+ipset save clienthosts > /etc/sysconfig/ipset
+
+Add a new rule to the INPUT chain that accepts traffic from all IP/port combinations as source IP/destination port in the clienthostsIP set.
+Create a new rule:
+iptables -I INPUT -m set --match-set clienthosts src,dst -j ACCEPT
+
+Verify the rule:
+iptables -nvL
+
+We should see the rule at the top.
+
+Save the rule configuration:
+iptables-save > /etc/sysconfig/iptables
+
+Restart iptables:
+systemctl restart iptables
+
+Check to make sure the rule persisted the reboot:
+iptables -nvL
+
+We should still see the rule at the top.
+
+Log in to one of the bootstrap servers on the lab page:
+ssh cloud_user@<BOOTSTRAP PUBLIC IP>
+
+Run the following:
+curl config-server:80
+
+We should see we're able to curl from config-server.
+
+Conclusion
+Congratulations on successfully completing this hands-on lab!
 
 == 328.4 Virtuan Private Networks ==
 === OpenVPN ===
