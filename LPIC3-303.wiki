@@ -2045,11 +2045,186 @@ Congratulations on successfully completing this hands-on lab!
 
 == 328.4 Virtual Private Networks ==
 === OpenVPN ===
-=== IPSec Concepts ===
-=== Hands-On Lab: Working with OpenVPN (and iptables) ===
+OpenVPN
+Working with IPSec Server and Clients
 
-The following is from Omidznlp's review of the LPIC 3: https://github.com/Omidznlp/LPIC-3-Exam-Topics-303-300-Security/tree/master
+Files:
+/etc/openvpn/server.conf
+
+cp /usr/share/doc/openvpn-VERSION/sample/sample-config-files/server.conf /etc/openvpn/
+
+Server and client same package
+Just use files
+port 1194
+
+Certs
+ca, cert and key
+
+Configure the server and bridge
+
+Commands:
+openvpn --mlock
+Disable paging by calling POSIX mlockall function
+Doesn't write key material or tunnel data to disk
+
+openvpn --push OPTION
+Push a config file back to client for remote execution.
+
+tls-timeout SECONDS
+packet retransmit timeout
+
+Two services
+openvpn@server
+openvpn@client
+
+man openvpn
+
+=== IPSec Concepts ===
+The Concept
+IPSec is used to create a peer to peer secure connection
+Configurations reside /etc/ipsec-tools.conf
+
+Kernel maintains two databases for IPSec:
+Security Association Database:
+Security Association (SA) describes how entities will use security services to communicate
+SAD entries contain the key of each IPSec-SA
+Security Policy Database:
+Used to determine if IPSec applies to a given packet
+Also determines how an IPSec Security Association applies to a packet
+setkey utility may add, update, dump or flush SAD or SPD entries in the kernel
+
+Notable setkey directives
+Following are used to manipulate the SAD:
+add
+get
+delete
+flush
+Dump
+
+Any directive may be prefaced with spd (spdadd) and will work for the SPD
+
+Racoon and L2TP
+Racoon is an IKEv1 keyring daemon
+/etc/racoon/racoon.conf
+
+L2TP is a VPN technology
+By itself it is insecure
+Requires ipsec be configured to be secure
+Must be used over an IPSec link
+
+StrongSwan and OpenVPN are more dominant
+
+=== Hands-On Lab: Working with OpenVPN (and iptables) ===
+Install and Configure the OpenVPN Server on vpn-server
+
+Become root user:
+sudo su -
+
+Install OpenVPN:
+yum install -y openvpn
+
+Copy the server config:
+cp /usr/share/doc/openvpn-2.4.7/sample/sample-config-files/server.conf /etc/openvpn/
+
+Open the server config file:
+vim /etc/openvpn/server.conf
+
+Edit the file to contain the following topology configuration (you can do so by un-commenting the line):
+topology subnet
+
+Save and quit the file.
+
+Install the Provided Server Certificates
+Run:
+cp /home/cloud_user/certs/ca.crt /home/cloud_user/certs/server.crt /home/cloud_user/certs/server.key /etc/openvpn
+
+Generate the Required Server Keys
+Generate the dhparam key (this may take a few minutes):
+openssl dhparam -out /etc/openvpn/dh2048.pem 2048
+
+Generate the key for tls-auth:
+openvpn --genkey --secret /etc/openvpn/ta.key
+
+Copy it to client:
+```
+scp /etc/openvpn/ta.key cloud_user@vpn-client:/home/cloud_user/ta.key
+```
+
+Make the Necessary Firewall and Routing Configurations for OpenVPN on vpn-server
+Open the UDP 1194 port:
+iptables -I INPUT -p udp --dport 1194 -j ACCEPT
+
+Create a network address translation rule:
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o eth0 -j MASQUERADE
+
+Enable IPv4 IP forwarding:
+sysctl -w net.ipv4.ip_forward=1
+
+Save the iptables rules:
+iptables-save > /etc/sysconfig/iptables
+
+Enable and Start the OpenVPN Server
+Enable the server:
+systemctl enable openvpn@server
+
+Start the server:
+systemctl start openvpn@server
+
+Log out of root:
+logout
+
+Change to the certs directory:
+cd certs
+Copy the certificates over from the home/cloud_user directory that the client will need for VPN configuration:
+scp ca.crt vpn-client:/home/cloud_user/
+scp client.crt vpn-client:/home/cloud_user/
+scp client.key vpn-client:/home/cloud_user/
+
+Install and Configure the OpenVPN Client on vpn-client
+Log in as vpn-client:
+ssh vpn-client
+
+Escalate to root:
+sudo su -
+
+Install OpenVPN:
+yum install y openvpn
+
+Copy the client.conf file from /usr/share/doc:
+cp /usr/share/doc/openvpn-2.4.7/sample/sample-config-files/client.conf /etc/openvpn/
+
+Open the file:
+vim /etc/openvpn/client.conf
+
+Update the remote command hostname directive as follows:
+remote vpn-server 1194
+
+Save and quit the file.
+
+Install the Provided Client and ca-certificates on vpn-client
+Copy the provided certificates off of vpn-server and to the noted directories on vpn-client:
+cp /home/cloud_user/ca.crt /etc/openvpn/
+cp /home/cloud_user/client.key /etc/openvpn/
+cp /home/cloud_user/client.crt /etc/openvpn/
+Install the tls Key from vpn-server on vpn-client
+
+Run the following:
+cp /home/cloud_user/ta.key /etc/openvpn/
+
+Enable and Start the OpenVPN Client
+
+Enable the client:
+systemctl enable openvpn@client
+
+Start the client:
+systemctl start openvpn@client
+
+Conclusion
+Congratulations on successfully completing this hands-on lab!
+
 == 335: Threats and Vulnerability Assessment ==
+The following is from Omidznlp's review of the LPIC 3: https://github.com/Omidznlp/LPIC-3-Exam-Topics-303-300-Security/tree/master
+
 === Common Security Vulnerabilities and Threats ===
 Threats against individual nodes:
 Malware infections: Malware is a type of software designed to cause harm to a computer system. It can infect individual nodes, such as laptops or servers, and spread to
