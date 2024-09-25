@@ -4,6 +4,48 @@
 
 == Chapter 2: Domain Name Server ==
 === Basic DNS Server Configuration (DNS Client Configuration and Terms) ===
+/etc/resolv.conf
+nameserver IP
+
+Translate IP/Hostname to IP to route to
+Search/Domain
+Domain processed before Search
+
+yum provides nslookup
+Look through repos for package
+
+Domain is what name service with start with
+nslookup www
+
+nslookup www.domain
+Will find domain info
+
+Root servers, endpoint
+
+Domains,
+microsoft.com etc.
+
+FQDN,
+prod.mydomain.com
+
+Host and domain spelled out
+
+Toplevel domains
+.com, .net, .gov, etc.
+
+All of those are defined somewhere in a zone file as a record
+Stores translation from an IP to a name
+
+Forward and reverse lookups
+Forward lookup
+nslookup domain.com
+
+Use IP provided for reverse lookup
+
+Reverse lookup
+nslookup IP
+
+Used in security for verification
 
 === Basic DNS Server Configuration (BIND Installation - Caching Name Server) ===
 === Basic DNS Server Configuration (BIND Service Start and rndc Command) ===
